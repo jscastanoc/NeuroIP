@@ -9,7 +9,7 @@ function [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
 %       L -> NcxNd. Lead Field matrix
 %		Laplacian -> NdxNd. Spatial Laplacian matrix (information about dipole Neighbors.
 %       par -> 5x1 (optional). Vector containing the parameters a1 b1 a2
-%       (parameters for the dynamical model), and sigma and epsi (variances)
+%       (parameters for the dynamical model), and sigma and epsi (variances in sources and channels respectively)
 %
 % Output:
 % 		x -> NdxNt. Estimated neural activity.

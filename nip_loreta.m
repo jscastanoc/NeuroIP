@@ -28,8 +28,8 @@ iLAP_LT = inv_Lap*L';
 
 % Get the optimal regularization parameter
 gcv_fun = @(alpha) gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc);
-% options = optimset('Display','iter','tolX',1e-6);
-options = optimset('tolX',1e-6);
+options = optimset('Display','iter','tolX',1e-6);
+% options = optimset('tolX',1e-6);
 alpha = fminsearch(gcv_fun, 0,options);
 
 % Solution
@@ -42,6 +42,7 @@ function gcv_val = gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc)
 
 T = iLAP_LT/(L*iLAP_LT+alpha*eye_Nc);
 x_est = T*y;
-gcv_val = norm(L*x_est - y,2)^2/trace(eye_Nc-L*T)^2;
+A = norm(L*x_est - y,2);
+gcv_val = sum(diag(A*A'))/trace((eye_Nc-L*T))^2;
 
 end
