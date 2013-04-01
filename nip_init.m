@@ -9,5 +9,5 @@ function status = nip_init()
     addpath(strcat(fileparts(which('nip_init')),'/data'));
     addpath(strcat(fileparts(which('nip_init')),'/external/toolbox_graph'));
     addpath(strcat(fileparts(which('nip_init')),'/external/toolbox_graph/toolbox'));
-    addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
+    %addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
 end
