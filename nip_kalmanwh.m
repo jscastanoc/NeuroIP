@@ -50,7 +50,7 @@ covSigmaMat = [sigma^2 0; 0 0];
 
 [Jwth, ~] = nip_loreta(y(:,1:2),L, inv(Laplacian'*Laplacian));
 Jwth = Laplacian*Jwth;
-P = 2*ones(Nd,1);
+P = 10*ones(Nd,1);
 Pwth_ap = zeros([2,2,Nd]);
 for k = 3:Nt
     R = zeros([Nc,Nc]);    

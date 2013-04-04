@@ -1,4 +1,4 @@
-function X = nip_simulate_activity(cortex, Laplacian, act_dip, act, t, options)
+function [X, act_dip] = nip_simulate_activity(cortex, Laplacian, act_dip, act, t, options)
 % X = nip_simulate_activity(cortex, Laplacian, act_dip, act, t, options)
 % 
 % Input:

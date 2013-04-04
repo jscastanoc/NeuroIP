@@ -30,17 +30,17 @@ iLAP_LT = inv_Lap*L';
 gcv_fun = @(alpha) gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc);
 options = optimset('Display','iter','tolX',1e-6);
 % options = optimset('tolX',1e-6);
-alpha = fminsearch(gcv_fun, 0,options);
+alpha = fminsearch(gcv_fun, 0.5,options);
 
 % Solution
-J_rec = iLAP_LT/(L*iLAP_LT+alpha*eye_Nc)*y;
-extras.regpar = alpha;
+J_rec = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc)*y;
+extras.regpar = alpha^2;
 end
 
 
 function gcv_val = gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc)
 
-T = iLAP_LT/(L*iLAP_LT+alpha*eye_Nc);
+T = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc);
 x_est = T*y;
 A = norm(L*x_est - y,2);
 gcv_val = sum(diag(A*A'))/trace((eye_Nc-L*T))^2;

@@ -22,7 +22,7 @@ function h = nip_show_3D(cortex, data, a_handle)
 
 % Map the information contained in data to the corresponding colormap
 % codification
-data = data-min(data);
+data = abs(data)-min(abs(data));
 
 x_tik = data;
 
