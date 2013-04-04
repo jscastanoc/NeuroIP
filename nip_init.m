@@ -13,7 +13,6 @@ function status = nip_init()
     addpath(strcat(fileparts(which('nip_init')),'/external/fieldtrip'));
     addpath(strcat(fileparts(which('nip_init')),'/external/fieldtrip/forward'));
     addpath(strcat(fileparts(which('nip_init')),'/external/spm8'));    
-    ft_defaults();
     addpath(strcat(fileparts(which('nip_init')),'/external/fuzzy_sources'));
-    %addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
+    addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
 end
