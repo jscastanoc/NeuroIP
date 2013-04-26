@@ -40,14 +40,14 @@ subplot(1,2,1)
 plot(J(idx,:)')
 
 model.y = model.L*J;
-model.y = nip_addnoise(model.y,100);
+model.y = nip_addnoise(model.y,10);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time Frequency decomposition %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Fb = 1.5;
-f = 0.5:0.1:30; % Resolution of the time frequency map
+f = 0.5:1:30; % Bins of the time frequency map
 Fs = model.fs;
 Nf = length(f);
 for j=1:Nf
@@ -65,17 +65,23 @@ end
 %%%%%%%%%%%
 % Show TF %
 %%%%%%%%%%%
-% figure('Units','normalized','position',[0.1 0.1 0.3 0.3]);
-% for i = 1:model.Nc
-%     img_ch(:,:) = S(i,:,:);
-%     imagesc(img_ch)
-%     axis xy;
-%     pause(0.5)
-% end
+figure('Units','normalized','position',[0.1 0.1 0.3 0.5]);
+
+for i = 1:model.Nc
+    img_ch(:,:) = S(i,:,:);
+    imagesc(img_ch,[min(min(min(S))),max(max(max(S)))])
+    axis xy;
+    pause(1)
+end
 
 % Parafac Decomposition
 Opt(1) = 1e-6; Opt(2) = 1; Opt(3) = 0; Opt(4) = 0; Opt(5) = 10; Opt(6) = 2500;
 const = [2,2,2];
 Nfac =4; % Number of factors to decompose
 [Factors,it,err,concord] = parafac(S,Nfac,Opt,const);
+
+
+S_rec = nmodel(Factors,[],2);
+
+
 

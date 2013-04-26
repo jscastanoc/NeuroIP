@@ -26,7 +26,7 @@ data = abs(data)-min(abs(data));
 
 x_tik = data;
 
-insig_idx =  find(abs(data) < max(abs(data))*0.1);
+insig_idx =  find(abs(data) < max(abs(data))*0.02);
 
 nc=256;
 [n,T]=size(x_tik);

@@ -29,8 +29,10 @@ function [X, act_dip] = nip_simulate_activity(cortex, Laplacian, act_dip, act, t
 % Juan S. Castano
 % jscastanoc@gmail.com
 % 26 Jan 2013
+% TODO: No need for laplacian!
 
 Nd = size(cortex.vertices,1);
+Laplacian = speye(Nd);
 Nt = length(t);
 
 options.null = 0;
