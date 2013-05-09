@@ -32,14 +32,14 @@ J = nip_simulate_activity(model.cortex,Laplacian, [30 -20 30], ...
         act,model.t);
 
 % Hay dispersion de la actividad, entre más grande el número, más dispersa es la actividad    
-fuzzy = nip_fuzzy_sources(model.cortex,1);
+fuzzy = nip_fuzzy_sources(model.cortex,0.01);
 J = fuzzy*J; % J simulado FINAL
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
 
 % Añadir ruido
-snr = 10;
+snr = 100;
 model.y = nip_addnoise(clean_y, snr);
 
 

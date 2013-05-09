@@ -112,4 +112,48 @@ subplot(1,3,3)
 plot(Factors{3})
 
 
+figure('Units','Normalized','Position',[0.3 0.1 0.3 0.5])
 
+%%% Apply "Binary" mask on the original TF to extract each of the principal
+%%% factors, then, reconstruct the time series of the signal directly from
+%%% the TF.
+for i = 1:Nfac
+    for j=1:3
+        Fact_rec{j} = Factors{j}(:,i);
+    end
+    S_rec = nmodel(Fact_rec,[],2);
+    subplot(3,2,i)
+    im_S(:,:) = S_rec(ch,:,:);
+    imagesc(im_S)
+    axis xy;
+    subplot(3,2,i+2)
+    idx_S = find(abs(S_rec)>0.1*max(max(max(abs(S_rec)))));
+    bin_S = zeros(size(S_rec));
+    bin_S(idx_S) = 1;
+    c_inv = permute(c.*bin_S,[2 3 1]); % Apply "filtering" mask and reorder coordinates to performe the iSTFT
+    f{i}=idgtreal(c_inv,'gauss',a,M)'; % Inverse STFT
+    plot(f{i}(:,1:model.Nt)')
+    
+    subplot(3,2,i+4)
+    timelock.individual =f{i}(:,1:model.Nt).^2;
+    timelock.avg = f{i}(:,1:model.Nt).^2;
+    ft_topoplotER(cfg, timelock); 
+end
+% Next: Find a solution with each of the f's
+
+figure('Units','Normalized','Position',[0.3 0.1 0.5 0.3])
+% Reconstruccion datos originales
+Q = nip_lcmv(model.y,model.L); % Obtain beamformer with original data
+Q = diag(Q);
+[J_rec,~] = nip_loreta(model.y,model.L,Q);
+subplot(1,3,1)
+nip_reconstruction3d(model.cortex,sum(J_rec.^2,2),gca);
+
+% Reconstruccion con cada modo identificado con PARAFAC
+% for i = 1:Nfac
+%     Q = nip_lcmv(f{i}(:,1:model.Nt),model.L);
+%     Q = diag(Q);
+%    [J_recSep{i},~] = nip_loreta(f{i}(:,1:model.Nt),model.L,Q);
+%    subplot(1,3,i+1)
+%    nip_reconstruction3d(model.cortex,sum(J_recSep{i}.^2,2),gca);
+% end
