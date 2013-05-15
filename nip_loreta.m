@@ -1,4 +1,4 @@
-function [J_rec, extras] = nip_loreta(y, L, Q)
+function [J_rec, extras, invT] = nip_loreta(y, L, Q)
 % [J_rec, extras] = nip_loreta(y, L, Q) 
 % Calculate the inverse problem solution using the minimum norm approach
 % Input:
@@ -33,7 +33,8 @@ options = optimset('Display','iter','tolX',1e-6);
 alpha = fminsearch(gcv_fun, 0.5,options);
 
 % Solution
-J_rec = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc)*y;
+invT = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc);
+J_rec = invT*y;
 extras.regpar = alpha^2;
 end
 
