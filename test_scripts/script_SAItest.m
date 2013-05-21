@@ -39,7 +39,7 @@ J = fuzzy*J; % J simulado FINAL
 clean_y = model.L*J;
 
 % Añadir ruido
-snr = -10;
+snr = 0;
 model.y = nip_addnoise(clean_y, snr);
 
 
@@ -50,14 +50,14 @@ model.y = nip_addnoise(clean_y, snr);
 % Estimar actividad (en este caso LORETA por que se usa el laplaciano
 % espacial para hallar la matriz de covarianza
 
-Q = diag(nip_lcmv(model.y,model.L));
-% Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
+% Q = diag(nip_lcmv(model.y,model.L));
+Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
 [J_est, extras] = nip_loreta(model.y, model.L, Q);
 % J_est = nip_sloreta(model.y,model.L);
 disp('SAI')
 [sai, Ms, Mr] = nip_error_sai(model.cortex,J,J_est,5);
 sai
-
+tai = nip_error_tai(model.y,model.L, J_est)
 
 %%%%%%%%%%%%%%%%%
 % Visualizacion %
