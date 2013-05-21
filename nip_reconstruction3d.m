@@ -1,5 +1,5 @@
-function h = nip_show_3D(cortex, data, a_handle)
-% h = nip_show_3D(cortex, data, a_handle)
+function h = nip_reconstruction3D(cortex, data, a_handle)
+% h = nip_reconstruction3D(cortex, data, a_handle)
 % Shows the activity 'data' in the volume described by 'mesh'.
 % Input:
 %       cortex -> struct. Describes the volume to be drawn. Should contain
