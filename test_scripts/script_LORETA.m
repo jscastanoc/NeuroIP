@@ -32,14 +32,14 @@ J = nip_simulate_activity(model.cortex,Laplacian, [30 -20 30], ...
         act,model.t);
 
 % Hay dispersion de la actividad, entre más grande el número, más dispersa es la actividad    
-fuzzy = nip_fuzzy_sources(model.cortex,0.01);
+fuzzy = nip_fuzzy_sources(model.cortex,1);
 J = fuzzy*J; % J simulado FINAL
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
 
 % Añadir ruido
-snr = 100;
+snr = 10;
 model.y = nip_addnoise(clean_y, snr);
 
 
@@ -51,6 +51,7 @@ model.y = nip_addnoise(clean_y, snr);
 % espacial para hallar la matriz de covarianza
 Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
 [J_est, extras] = nip_loreta(model.y, model.L, Q);
+% J_est = nip_sloreta(model.y,model.L);
 
 
 %%%%%%%%%%%%%%%%%
@@ -58,7 +59,7 @@ Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
 %%%%%%%%%%%%%%%%%
 %%% Visualizacion de la simulacion %%%
 %Temporal
-figure
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 plot(model.t,J')
 xlabel('Time')
 ylabel('Amplitude')
@@ -66,12 +67,12 @@ ylabel('Amplitude')
 % Espacial en un instante de tiempo dado
 % t_0 = 25ms
 t_0 = 0.025*model.fs;
-figure;
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 nip_reconstruction3d(model.cortex, J(:,t_0), gca);
 
 %%% Visualizacion de la reconstruccion %%%
 %Temporal
-figure
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 plot(model.t,J_est')
 xlabel('Time')
 ylabel('Amplitude')
@@ -79,5 +80,5 @@ ylabel('Amplitude')
 % Espacial en un instante de tiempo dado
 % t_0 = 25ms
 t_0 = 0.025*model.fs;
-figure;
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 nip_reconstruction3d(model.cortex, J_est(:,t_0), gca);
