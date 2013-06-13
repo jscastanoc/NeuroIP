@@ -63,7 +63,7 @@ D = D*meanDist;
 GeoD = D;
 
 % Create spatial "masks"
-sp_tol = 1; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
+sp_tol = 0.5; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
 idx = find(D > sp_tol);
 D(idx) = 0;
 idx = find(D);

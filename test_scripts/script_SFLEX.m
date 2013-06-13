@@ -8,7 +8,7 @@ nip_init();
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Numero de dipolos a considerar
-Nd = 4000; % 1000, 2000, 4000, 8000
+Nd = 1000; % 1000, 2000, 4000, 8000
 
 % Cargar datos(lead field, mesh del cerebro etc...
 load(strcat('data/montreal',num2str(Nd),'_10-10.mat'))
@@ -53,20 +53,24 @@ figure('Units','normalized','position',[0.1 0.1 0.3 0.3])
 subplot(1,3,1)
 nip_reconstruction3d(model.cortex,sqrt(sum(J.^2,2)),gca);
 
-nbasis = model.Nd;
+
+nbasis = 256;
+fuzzy = nip_fuzzy_sources(model.cortex,0.5);
+basis1 = fuzzy(:,randi([1,model.Nd],nbasis,1));
 fuzzy = nip_fuzzy_sources(model.cortex,1);
-basis = fuzzy(:,randi([1,model.Nd],nbasis,1));
+basis2 = fuzzy(:,randi([1,model.Nd],nbasis,1));
+fuzzy = nip_fuzzy_sources(model.cortex,2);
+basis3 = fuzzy(:,randi([1,model.Nd],nbasis,1));
+basis = [basis1 basis2 basis3 ];
 
-A = kron(speye(model.Nt),model.L*basis);
 
-[xx,status]=dalsql1(ones(nbasis*model.Nt,1), A, model.y(:), 0.000001);
-% [xx,status]=dallrl1(zeros(128,1), 0, A, model.y, 0.5);
 
-J_rec = basis*reshape(xx,model.Nd,model.Nt);
+[J_rec,~] = nip_sflex(model.y,model.L,basis);
+
 subplot(1,3,2)
 nip_reconstruction3d(model.cortex,sqrt(sum(J_rec.^2,2)),gca)
 
-Q = nip_lcmv(model.L,model.y);
+Q = nip_lcmv(model.y,model.L);
 
 [J_rec,~] = nip_loreta(model.y,model.L,diag(Q));
 subplot(1,3,3)
