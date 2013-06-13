@@ -23,7 +23,8 @@ function lf = nip_gen_leadfield(mesh_head, dip_pos, elec, vol)
 % Juan S. Castaño C. 
 % 15 Jan 2013
 
-addpath('external/fieldtrip/forward')
+home = fileparts(which('nip_gen_leadfield'));
+addpath(strcat(home,'/external/fieldtrip/forward'));
 
 vol_aux = mesh_head;
 head = [];
@@ -32,21 +33,22 @@ for i = 1:numel(vol_aux)
    head(i).tri = vol_aux{i}.faces;
 end
 
-if exist(vol,'file')
-    load(vol)
+if exist(fullfile(home,vol),'file')
+    load(fullfile(home,vol))    
+    [vol, sens] = ft_prepare_vol_sens(vol,elec);
 else
     disp('Computing Volume Conductor Model')
-    file_name = vol;
+    file_name = fullfile(home,vol);
     try
         vol = ft_headmodel_dipoli(head);
     catch
 %         vol = ft_headmodel_openmeeg(head);
         vol = ft_headmodel_bemcp(head);
     end
-    [vol, sens] = ft_prepare_vol_sens(vol,elec);
     save(file_name,'vol');
 end
 
+[vol, sens] = ft_prepare_vol_sens(vol,elec);
 disp('Computing lead fields')
 lf =  ft_compute_leadfield(dip_pos, sens, vol);
 

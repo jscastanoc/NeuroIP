@@ -7,7 +7,7 @@ nip_init();
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Numero de dipolos a considerar
-Nd = 2000; % 1000, 2000, 4000, 8000
+Nd = 4000; % 1000, 2000, 4000, 8000
 
 % Cargar datos(lead field, mesh del cerebro etc...
 load(strcat('data/montreal',num2str(Nd),'_full.mat'))
@@ -39,7 +39,7 @@ J = fuzzy*J; % J simulado FINAL
 clean_y = model.L*J;
 
 % Añadir ruido
-snr = 0;
+snr = 10;
 model.y = nip_addnoise(clean_y, snr);
 
 
@@ -50,14 +50,15 @@ model.y = nip_addnoise(clean_y, snr);
 % Estimar actividad (en este caso LORETA por que se usa el laplaciano
 % espacial para hallar la matriz de covarianza
 
-% Q = diag(nip_lcmv(model.y,model.L));
-Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
+Q = diag(nip_lcmv(model.y,model.L));
+% Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
 [J_est, extras] = nip_loreta(model.y, model.L, Q);
 % J_est = nip_sloreta(model.y,model.L);
 disp('SAI')
-[sai, Ms, Mr] = nip_error_sai(model.cortex,J,J_est,5);
+[sai, Ms, Mr] = nip_error_sai(model.cortex,J,J_est,3);
 sai
 tai = nip_error_tai(model.y,model.L, J_est)
+mse = nip_error_mse(J,J_est)
 
 %%%%%%%%%%%%%%%%%
 % Visualizacion %

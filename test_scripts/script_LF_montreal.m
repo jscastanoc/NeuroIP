@@ -2,6 +2,7 @@
 % http://eeg.pl/Members/jarekz/lead-field-data-for-subjects-form-the-paper/view
 clear; close all; clc;
 load data/sa-montreal;
+home = fileparts(which('nip_init'));
 
 full_labels = sa.clab_electrodes;
 
@@ -25,11 +26,11 @@ labels={'Cz','Oz','PO3','PO4','O1','O2','P3','P4','P8', ...
 % cortex_mesh describing the geometry of the cortex (select the number of dipoles to consider)
 cortex_mesh.vertices = sa.cortex.vc;
 cortex_mesh.faces = sa.cortex.tri;
-cortex_mesh = nip_subsample_mesh(cortex_mesh,1999);
-
+cortex_mesh = nip_subsample_mesh(cortex_mesh,3999);
+Nd = size(cortex_mesh.vertices,1);
 
 % cortex_mesh describing the geometry of the head
-aux_vol = sa.vc(3); % Number of shells to use 
+aux_vol = sa.vc(1:3); % Number of shells to use 
                     % You can use the three of them but if you will need a
                     % lot of RAM and a lot of time.
 for i=1:numel(aux_vol)
@@ -45,8 +46,8 @@ elec.chanpos = sa.locs_3D(idx_label,1:3);
 elec.elecpos = sa.locs_3D(idx_label,1:3);
 
 
-lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, 'extra_data/vol_dipoli_1shell');
-
+% lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, 'extra_data/vol_dipoli_1shell');
+lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, strcat('extra_data/vol_dipoli_3shell',num2str(Nd),'Nd.mat'));
 
 % We assume that the orientation of the dipoles is perpendicular to the
 % cortex
@@ -55,8 +56,8 @@ L = zeros(size(lf, 1), size(lf, 2)/3);
 for i = 1:size(L,2)
     L(:, i) = lf(:, (3*i- 2):(3*i))*cortex_mesh_normals(i, :)';
 end
-
+% Lfull = lf;
 clear elec_pos full_labels i idx_label labels lf cortex_mesh_normals sa vol aux_vol
 
 
-save(strcat('data/montreal',num2str(size(L,2)),'_',eeg_std))
+save(fullfile(home,strcat('data/montreal',num2str(size(L,2)),'_',eeg_std)))

@@ -108,11 +108,12 @@ figure('Units','normalized','position',[0.1 0.1 0.3 0.3]);
 imagesc(full(abs(Z)))
 figure('Units','normalized','position',[0.1 0.1 0.3 0.3]);
 nip_reconstruction3d(model.cortex,sqrt(sum(J_recf(:,1:model.Nt).^2,2)),gca);
-
+title('TFMxNE')
 
 [J_rec,~] = nip_loreta(model.y,model.L,speye(model.Nd));
 figure('Units','normalized','position',[0.1 0.1 0.3 0.3]);
 nip_reconstruction3d(model.cortex,sqrt(sum(J_rec.^2,2)),gca);
+title('LORETA')
 
 end
 

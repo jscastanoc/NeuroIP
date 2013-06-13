@@ -17,6 +17,7 @@ spm			-> http://www.fil.ion.ucl.ac.uk/spm/
 
 fieldtrip 	-> http://fieldtrip.fcdonders.nl/
 
+DAL (for S-FLEX solver) -> http://www.ibis.t.u-tokyo.ac.jp/ryotat/dal/
 
 #-------- LEAD FIELD DATA ------------#
 The lead field Matrix was taken from: 
