@@ -59,7 +59,7 @@ Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
 %%%%%%%%%%%%%%%%%
 %%% Visualizacion de la simulacion %%%
 %Temporal
-figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 plot(model.t,J')
 xlabel('Time')
 ylabel('Amplitude')
@@ -67,7 +67,7 @@ ylabel('Amplitude')
 % Espacial en un instante de tiempo dado
 % t_0 = 25ms
 t_0 = 0.025*model.fs;
-figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 nip_reconstruction3d(model.cortex, J(:,t_0), gca);
 
 %%% Visualizacion de la reconstruccion %%%
