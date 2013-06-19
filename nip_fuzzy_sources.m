@@ -18,6 +18,7 @@ function aff = nip_fuzzy_sources(cortex, sigma)
 % 14 Mar 2013
 
 Nd = num2str(size(cortex.vertices,1));
+A    = sparse(triangulation2adjacency(cortex.faces));
 
 % Search for a file with the precompute geodesic distances. If not found,
 % computes them and saves them in a file (This WILL take a while, grab a
@@ -26,9 +27,16 @@ file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),
 if exist(file_name,'file')
     load(file_name)
 else
-    A    = triangulation2adjacency(cortex.faces);
     D   = compute_distance_graph(A);
     save(file_name,'D');
 end
 
-aff = exp(-D/sigma);
+% Normalization (so other functions work for meshes of different sizes)
+dd = pdist(cortex.vertices,'euclidean');
+dd = squareform(dd);
+dist_neighbor = mean(mean(sparse(A.*dd)));
+nD = dist_neighbor*D;
+nD = nD/max(max(nD));
+
+% Affinity /distance matrix with gaussians aroung each vertex
+aff = exp(-nD/sigma);
