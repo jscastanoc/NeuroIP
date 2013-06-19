@@ -22,10 +22,18 @@ function h = nip_reconstruction3D(cortex, data, a_handle)
 
 % Map the information contained in data to the corresponding colormap
 % codification
+
+Nd = length(data);
+
+% Compute the magnitude of the activity in each dipole
+data_m = zeros(Nd/3,1);
+for i = 1:Nd/3
+    data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
+end
+data = data_m;
+
 data = abs(data)-min(abs(data));
-
 x_tik = data;
-
 insig_idx =  find(abs(data) < max(abs(data))*0.05);
 
 nc=256;
