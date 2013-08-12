@@ -22,7 +22,10 @@ function h = nip_reconstruction3D(cortex, data, a_handle)
 
 % Map the information contained in data to the corresponding colormap
 % codification
-
+if isfield(cortex, 'vc') && isfield(cortex,'tri')
+    cortex.vertices = cortex.vc;
+    cortex.faces = cortex.tri;
+end
 Nd = length(data);
 
 % Compute the magnitude of the activity in each dipole
@@ -35,6 +38,7 @@ data = data_m;
 data = abs(data)-min(abs(data));
 x_tik = data;
 insig_idx =  find(abs(data) < max(abs(data))*0.05);
+sig_idx =  find(abs(data) >= max(abs(data))*0.05);
 
 nc=256;
 [n,T]=size(x_tik);
@@ -52,19 +56,22 @@ end
 
 vca(insig_idx,:) = repmat([255 255 255]/275, length(insig_idx),1);
 
-% Draw (?)
 axes(a_handle)
 cla
-% cortex_smooth = smoothpatch(cortex,1,2,1,0.5);
 cortex_smooth = cortex;
 h = patch('Faces', cortex_smooth.faces, 'Vertices', cortex_smooth.vertices,'FaceVertexCData',vca,'FaceColor','interp');
+colorbar
+colormap autumn
+
+caxis([min(data(sig_idx)) max(data(sig_idx))]) 
+
 axis equal;
 axis off;
 set(h,'edgecolor','none');
 set(h,'AmbientStrength',1,'DiffuseStrength',1.0,'SpecularColorReflectance',0.0)
 material dull;
 camlight headlight; 
-lighting phong
+lighting phong;
 end
 
 
