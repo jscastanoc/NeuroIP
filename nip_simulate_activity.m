@@ -10,9 +10,8 @@ function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, opti
 %                   If matrix, is the coordinates of the active dipoles.
 %                   The function looks for the closest dipoles to the given
 %                   coordinates.
-%       act         -> cell of size 3, each cell with same rows than act_dip xNt if act_dip is Nactx3. act_dipxNt if act_dip is an integer. Time series
-%                   of the activity that's going to be simulated in the 
-%                   active dipoles
+%       act         -> NactxNt. Time course of the activity simulated on
+%                   active dipoles with orientation specified in "dir".
 %       dir         -> Nactx3. Direction of the dipole activity (vector).
 %       t           -> Ntx1. Row vector with the time vector.
 %       options     -> struct. Struct containing several options for the
