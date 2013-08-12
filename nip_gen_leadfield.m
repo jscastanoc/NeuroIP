@@ -20,7 +20,7 @@ function lf = nip_gen_leadfield(mesh_head, dip_pos, elec, vol)
 % Additional Comments:
 % This function is a wrapper for the Fieldtrip funcions:
 %    - ft_headmodel_dipoli - ft_prepare_vol_sens - ft_compute_leadfield.
-% Juan S. Castaño C. 
+% Juan S. Castano C. 
 % 15 Jan 2013
 
 home = fileparts(which('nip_gen_leadfield'));
@@ -39,11 +39,16 @@ if exist(fullfile(home,vol),'file')
 else
     disp('Computing Volume Conductor Model')
     file_name = fullfile(home,vol);
-    try
-        vol = ft_headmodel_dipoli(head);
-    catch
+    try        
+%         vol = ft_headmodel_bemcp(head);
 %         vol = ft_headmodel_openmeeg(head);
-        vol = ft_headmodel_bemcp(head);
+        vol = ft_headmodel_dipoli(head);
+    catch%        
+        try
+            vol = ft_headmodel_bemcp(head);        
+        catch
+            vol = ft_headmodel_openmeeg(head);
+        end
     end
     save(file_name,'vol');
 end

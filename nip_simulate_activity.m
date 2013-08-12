@@ -1,5 +1,5 @@
 function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
-% X = nip_simulate_activity(cortex, Laplacian, act_dip, act, t, options)
+% X = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
 % 
 % Input:
 %       cortex      -> struct. Describes the volume to be drawn. Should contain
