@@ -6,14 +6,21 @@ addpath('../extra_data/')
 full_labels = sa.clab_electrodes;
 
 
-% Labels for the 10-10 standard (34 electrodes)
+% Labels to use all the available electrodes
 eeg_std = 'full';
 labels=full_labels;
 
+% Labels for the 10-10 standard (34 electrodes)
+% eeg_std = '10-10';
+% labels={'Cz','Oz','PO3','PO4','O1','O2','P3','P4','P8', ...
+%            'P7','C3','T7','C1','C2','C4','T8','Fz','F4','F8','F3','F7', ...
+%            'AF3','AF4','Fp1','FC5','FC1','FC2','FC6','CP5','CP1','CP2', ...
+%            'CP6','Fp2','Pz'};
+
 % Labels for the emotiv (14 electrodes)
-eeg_std = 'emotiv'
-labels = {'AF3', 'F7','F3', 'FC5', 'T7', 'P7', 'O1', 'O2',...
-    'P8', 'T8', 'FC6', 'F4', 'F8', 'AF4'};
+% eeg_std = 'emotiv'
+% labels = {'AF3', 'F7','F3', 'FC5', 'T7', 'P7', 'O1', 'O2',...
+%     'P8', 'T8', 'FC6', 'F4', 'F8', 'AF4'};
 
 
 [~, idx_label] = ismember(labels,full_labels);
@@ -22,12 +29,12 @@ labels = {'AF3', 'F7','F3', 'FC5', 'T7', 'P7', 'O1', 'O2',...
 % cortex_mesh describing the geometry of the cortex (select the number of dipoles to consider)
 cortex_mesh.vertices = sa.cortex.vc;
 cortex_mesh.faces = sa.cortex.tri;
-cortex_mesh = nip_subsample_mesh(cortex_mesh,3999);
+cortex_mesh = nip_subsample_mesh(cortex_mesh,999);
 Nd = size(cortex_mesh.vertices,1)
 
 
 % cortex_mesh describing the geometry of the head
-aux_vol = sa.vc(1:3); % Number of shells to use 
+aux_vol = sa.vc(1); % Number of shells to use 
                     % You can use the three of them but if you will need a
                     % lot of RAM and a lot of time.
 
@@ -55,7 +62,7 @@ for i = 1:size(L,2)
     L(:, i) = lf(:, (3*i- 2):(3*i))*cortex_mesh_normals(i, :)';
 end
 
-clear elec_pos full_labels i idx_label labels lf cortex_mesh_normals sa vol aux_vol
+clear elec_pos full_labels i idx_label labels cortex_mesh_normals sa vol aux_vol
 
 
-save(strcat('../data/montreal',num2str(size(L,2)),'_',eeg_std,'3shell'))
+save(strcat('../data/montreal',num2str(size(L,2)),'_',eeg_std,'1shell'))

@@ -1,8 +1,9 @@
 % Script to generate the lead field using the data provided in:
 % http://eeg.pl/Members/jarekz/lead-field-data-for-subjects-form-the-paper/view
 clear; close all; clc;
-load data/sa-montreal;
+nip_init();
 home = fileparts(which('nip_init'));
+load data/sa-montreal;
 
 full_labels = sa.clab_electrodes;
 
@@ -30,24 +31,35 @@ cortex_mesh = nip_subsample_mesh(cortex_mesh,3999);
 Nd = size(cortex_mesh.vertices,1);
 
 % cortex_mesh describing the geometry of the head
-aux_vol = sa.vc(1:3); % Number of shells to use 
+aux_vol = sa.vc(2); % Number of shells to use 
                     % You can use the three of them but if you will need a
                     % lot of RAM and a lot of time.
+graphic_mode = false;
+if graphic_mode        
+    fig_vol = figure('Units','normalized','position',[0.2 0.2 0.5 0.5]);
+end
 for i=1:numel(aux_vol)
     head{i}.vertices = aux_vol{i}.vc;
     head{i}.faces = aux_vol{i}.tri;
+    if graphic_mode
+        figure(fig_vol)
+        h = patch('Faces', head{i}.faces, 'Vertices', head{i}.vertices);
+        axis equal
+        axis off
+        set(h,'facealpha',0.1);
+        pause(1)
+        hold on
+    end
 end
-
-
+% break
 % Sensor description for the Fieldtrip Toolbox.
-
 elec.label = labels;
 elec.chanpos = sa.locs_3D(idx_label,1:3);
 elec.elecpos = sa.locs_3D(idx_label,1:3);
 
 
 % lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, 'extra_data/vol_dipoli_1shell');
-lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, strcat('extra_data/vol_dipoli_3shell',num2str(Nd),'Nd.mat'));
+lf = nip_gen_leadfield(head, cortex_mesh.vertices, elec, strcat('extra_data/vol_dipoli',num2str(numel(aux_vol)),'_shell',num2str(Nd),'Nd.mat'));
 
 % We assume that the orientation of the dipoles is perpendicular to the
 % cortex
@@ -56,8 +68,8 @@ L = zeros(size(lf, 1), size(lf, 2)/3);
 for i = 1:size(L,2)
     L(:, i) = lf(:, (3*i- 2):(3*i))*cortex_mesh_normals(i, :)';
 end
-% Lfull = lf;
-clear elec_pos full_labels i idx_label labels lf cortex_mesh_normals sa vol aux_vol
+Lfull = lf;
+clear elec_pos full_labels i idx_label labels lf cortex_mesh_normals sa vol aux_vol Lfull
 
 
 save(fullfile(home,strcat('data/montreal',num2str(size(L,2)),'_',eeg_std)))

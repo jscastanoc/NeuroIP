@@ -1,7 +1,7 @@
 clear; clc;
 
 
-load data/montreal4000_10-10
+load data/montreal1000_10-10
 nip_init();
 
 
