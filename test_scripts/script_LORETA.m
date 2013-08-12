@@ -7,12 +7,12 @@ nip_init();
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Numero de dipolos a considerar
-Nd = 2000; % 1000, 2000, 4000, 8000
+Nd = 2000; % 2000, 4000
 
 % Cargar datos(lead field, mesh del cerebro etc...
-load(strcat('data/montreal',num2str(Nd),'_full.mat'))
+load(strcat('../data/nocons_or/montreal',num2str(Nd),'_full1shell.mat'))
 
-cfg.L = L;
+cfg.L = lf;
 cfg.cortex = cortex_mesh;
 cfg.fs = 200; % Frecuencia de muestreo para la simulacion
 cfg.t = 0:1/cfg.fs:1; % Vector de tiempo
@@ -25,15 +25,20 @@ clear cfg L cortex_mesh eeg_std head elec
 % Extraer el laplaciano espacial (ahí se codifica la información de vecinos
 [Laplacian, ~] = nip_neighbor_mat(model.cortex);
 
+
 act = sin(2*pi*10*model.t); % Actividad a simular
+
 % Simular actividad "act" en el dipolo más cercano a las coordenadas [30
 % -20 30]
-J = nip_simulate_activity(model.cortex,Laplacian, [30 -20 30], ...
-        act,model.t);
+J = nip_simulate_activity(model.cortex,[30 -20 30], act, randn(1,3), model.t);
 
-% Hay dispersion de la actividad, entre más grande el número, más dispersa es la actividad    
-fuzzy = nip_fuzzy_sources(model.cortex,1);
-J = fuzzy*J; % J simulado FINAL
+% Hay dispersion de la actividad, entre mas grande el numero, mas dispersa es la actividad    
+fuzzy = nip_fuzzy_sources(model.cortex,0.1);
+index = (1:3:model.Nd);
+
+for i = 0:2
+    J(index+i,:) = fuzzy*J(index+i,:); % J simulado FINAL
+end
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
@@ -49,7 +54,7 @@ model.y = nip_addnoise(clean_y, snr);
 %%%%%%%%%%%%%%
 % Estimar actividad (en este caso LORETA por que se usa el laplaciano
 % espacial para hallar la matriz de covarianza
-Q = inv(Laplacian'*Laplacian); %Matriz de covarianza apriori
+Q = eye(model.Nd); %Matriz de covarianza apriori
 [J_est, extras] = nip_loreta(model.y, model.L, Q);
 % J_est = nip_sloreta(model.y,model.L);
 
