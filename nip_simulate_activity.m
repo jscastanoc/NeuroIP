@@ -1,4 +1,4 @@
-function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, t, options)
+function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
 % X = nip_simulate_activity(cortex, Laplacian, act_dip, act, t, options)
 % 
 % Input:
@@ -13,6 +13,7 @@ function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, t, options)
 %       act         -> cell of size 3, each cell with same rows than act_dip xNt if act_dip is Nactx3. act_dipxNt if act_dip is an integer. Time series
 %                   of the activity that's going to be simulated in the 
 %                   active dipoles
+%       dir         -> Nactx3. Direction of the dipole activity (vector).
 %       t           -> Ntx1. Row vector with the time vector.
 %       options     -> struct. Struct containing several options for the
 %                   simulation of the activity.
@@ -30,8 +31,12 @@ function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, t, options)
 % jscastanoc@gmail.com
 % 26 Jan 2013
 
+if isfield(cortex, 'vc') && isfield(cortex,'tri')
+    cortex.vertices = cortex.vc;
+    cortex.faces = cortex.tri;
+end
+
 Nd = size(cortex.vertices,1);
-Laplacian = speye(Nd);
 Nt = length(t);
 
 options.null = 0;
@@ -40,9 +45,15 @@ if ~isfield(options, 'sample_all')
     options.sample_all = 0;
 end
 
+% Normalize orientation vector
+norm_dir = sqrt(sum(dir.^2,2));
+norm_dir = repmat(norm_dir,1,3);
+dir = dir./norm_dir;
+
+
 if isscalar(act_dip)    
         if options.sample_all
-            act_dip = randsample(Nd,act_dip)
+            act_dip = randsample(Nd,act_dip);
         else   % CAUTION!! this was only design for the montreal database
                 % You pick a point that's in the center of the brain and
                 % sampled only the dipoles that are farther from that point
@@ -68,7 +79,7 @@ end
 X = zeros(Nd*3,Nt);
 for i = 1:length(act_dip);
     for j = 1:3
-        X((act_dip(i)-1)*3+j,:) = act{j}(i,:);
+        X((act_dip(i)-1)*3+j,:) = act(i,:)*dir(j);
     end
 end
 
