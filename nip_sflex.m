@@ -22,9 +22,10 @@ function [J_est, extras] = nip_sflex(y, L, basis, reg_par)
 Nd = size(L,2);
 
 if nargin <=3
-    reg_par = 1e-6;
+    [~,extras]=nip_loreta(y,L,speye(Nd));
+    reg_par = extras.regpar*100;
 end
-
+% reg_par = 1e-2;
 
 % --- Not sure if I should do this here (you'll need a lot of ram if data
 % is big enough
@@ -32,8 +33,14 @@ A = sparse(kron(speye(Nt), L*basis));
 
 nbasis = size(basis,2);
 
-[xx,status]=dalsql1(zeros(nbasis*Nt,1), A, y(:), reg_par);
 
+[xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
+if sum(xx) == 0
+    [~,extras]=nip_loreta(y,L,speye(Nd));
+    reg_par = extras.regpar*30;
+    [xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
+end
 J_est = basis*reshape(xx,nbasis,Nt);
 extras =[];
+
 end
