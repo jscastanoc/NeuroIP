@@ -15,4 +15,5 @@ function status = nip_init()
     addpath(strcat(fileparts(which('nip_init')),'/external/spm8'));    
     addpath(strcat(fileparts(which('nip_init')),'/external/fuzzy_sources'));
     addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
+    addpath(strcat(fileparts(which('nip_init')),'/external/dal_ver1.05'));
 end
