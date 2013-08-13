@@ -23,8 +23,10 @@ warning off
 load clab_example;
 load clab_10_10;
 clab = clab_10_10;
-% sa = prepare_sourceanalysis(clab, 'icbm152b_sym');
-sa = prepare_sourceanalysis(clab, 'montreal');
+% data_name = 'icbm152b_sym';
+data_name = 'montreal';
+
+sa = prepare_sourceanalysis(clab, data_name);
 
 temp = sa.V_cortex;
 L = reshape(permute(temp,[1 3 2]), size(temp,1), size(temp,2)*3); % Leadfield matrix
@@ -68,5 +70,5 @@ Nspurious = 200;
 figure;
 nip_reconstruction3d(model.cortex,sqrt(sum(Jclean.^2,2)),gca);
     
-fuzzy = nip_fuzzy_sources(model.cortex,0.1);
+fuzzy = nip_fuzzy_sources(model.cortex, 0.1, data_name);
     

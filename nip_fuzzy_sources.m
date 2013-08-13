@@ -1,4 +1,4 @@
-function aff = nip_fuzzy_sources(cortex, sigma)
+function aff = nip_fuzzy_sources(cortex, sigma, file_name)
 % aff = nip_fuzzy_sources(cortex, sigma)
 % This function returns a matrix that contains information about the
 % distance between points in a graph. It places a gaussian with variance = sigma
@@ -16,6 +16,12 @@ function aff = nip_fuzzy_sources(cortex, sigma)
 %
 % Juan S. Castaño C.
 % 14 Mar 2013
+if isfield(cortex, 'vc') && isfield(cortex,'tri')
+    cortex.vertices = cortex.vc;
+    cortex.vc = [];
+    cortex.faces = cortex.tri;
+    cortex.tri = [];
+end
 
 Nd = num2str(size(cortex.vertices,1));
 A    = sparse(triangulation2adjacency(cortex.faces));
@@ -23,7 +29,9 @@ A    = sparse(triangulation2adjacency(cortex.faces));
 % Search for a file with the precompute geodesic distances. If not found,
 % computes them and saves them in a file (This WILL take a while, grab a
 % snickers).
-file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
+if nargin < 3
+    file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
+end
 if exist(file_name,'file')
     load(file_name)
 else
