@@ -1,4 +1,4 @@
-function [y, Jclean] = nip_simtrials(L, cortex, act, t, Nsp,Ntrials,snr_meas, snr_bio)
+function [y, Jclean] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
 
 [Nc Nd] = size(L);
 Nt = length(t);
@@ -6,7 +6,7 @@ Nt = length(t);
 Nact = size(act,1);
 dir = randn(Nact,3);
 options.sample_all = true;
-[Jclean, actidx] = nip_simulate_activity(cortex, Nact, act, dir, t, options);
+[Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t, options);
 
 
 
@@ -22,7 +22,7 @@ rev_line = '';
 
 dir = randn(Nsp,3);
 sp_act = mkpinknoise(Nt,Nsp)';
-J = nip_simulate_activity(cortex,Nsp, sp_act, dir, t,options);
+J = nip_simulate_activity(dip_pos,Nsp, sp_act, dir, t,options);
 for i = 1:Nact
     J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
 end
@@ -45,7 +45,7 @@ for n = 1:1:Ntrials
     
     options.sample_all = true;
     dir = randn(Nsp,3);
-    J = nip_simulate_activity(cortex,Nsp, sp_act, dir, t,options);
+    J = nip_simulate_activity(dip_pos,Nsp, sp_act, dir, t,options);
     for i = 1:Nact
         J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
     end

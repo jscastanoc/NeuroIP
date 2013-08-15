@@ -1,10 +1,8 @@
-function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
+function [X, act_dip] = nip_simulate_activity(dip_pos, act_dip, act, dir, t, options)
 % X = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
 % 
 % Input:
-%       cortex      -> struct. Describes the volume to be drawn. Should contain
-%                   the fields 'faces' and 'vertices' corresponding to the graph 
-%                   of the tessellated brain surface.
+%       dip_pos     -> Ndx3. Array with the positions of the electrodes
 %       act_dip     -> Scalar or Nactx3. If scalar, represent the number of
 %                   active sources in the brain, randomly selected.
 %                   If matrix, is the coordinates of the active dipoles.
@@ -30,12 +28,9 @@ function [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, opti
 % jscastanoc@gmail.com
 % 26 Jan 2013
 
-if isfield(cortex, 'vc') && isfield(cortex,'tri')
-    cortex.vertices = cortex.vc;
-    cortex.faces = cortex.tri;
-end
 
-Nd = size(cortex.vertices,1);
+
+Nd = size(dip_pos,1);
 Nt = length(t);
 
 options.null = 0;
@@ -56,16 +51,16 @@ if isscalar(act_dip)
         else   % CAUTION!! this was only design for the montreal database
                 % You pick a point that's in the center of the brain and
                 % sampled only the dipoles that are farther from that point
-            point = mean(cortex.vertices);
+            point = mean(dip_pos);
             point(3) = point(3) - point(3)*0.2;
-            dists = dist([cortex.vertices; point]' );
+            dists = dist([dip_pos; point]' );
             [~, idx] = sort(dists(end,:),'descend');
             temp = 1.6;
             act_dip = randsample(Nd/temp,act_dip);
             act_dip = idx(act_dip);
         end
 elseif ismatrix(act_dip)
-    dists = dist([cortex.vertices; act_dip]' );
+    dists = dist([dip_pos; act_dip]' );
     nact = size(act_dip,1);
     act_dip = [];
     for i = 1:nact
