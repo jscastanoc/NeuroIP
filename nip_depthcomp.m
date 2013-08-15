@@ -1,4 +1,16 @@
 function Lcomp = nip_depthcomp(L,gamma)
+% Lcomp = nip_depthcomp(L,gamma)
+% Compensate the depth bias on the reconstruction by normalizing the lead
+% field matrix. 
+%  Input:
+%       L       -> Ncx3Nd. Lead field matrix.
+%       gamma   -> Scalar. Normalization parameter. 0 means no
+%           normalization. 1 means maximum normalization.
+%  Output:
+%       Lcomp   -> Ncx3Nd. Normalized lead field matrix.
+% Juan S. Castano C.
+% jscastanoc@gmail.com
+% 14 Aug 2013
 
 [Nc Nd] = size(L);
 

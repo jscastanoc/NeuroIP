@@ -1,5 +1,22 @@
 function [J_rec extras] = nip_tfmxne(y,L,options)
 % function [J_rec extras] = nip_tfmxne()
+% Solve the inverse problem using the TF-MxNE approach as introduced by
+% Gramfort et al 2012.
+%  Input:
+%         y -> NcxNt. Matrix containing the data,
+%         L -> Ncx3Nd. Lead Field matrix
+%         options -> struct.
+%                 options.spatial_reg -> scalar. Percentage of spatial
+%                       regularization (between 0 and 1). 
+%                 options.temp_reg -> scalar. Percentage of temporal
+%                       regularization (between 0 and 1).
+%                 options.a -> scalar. Time shift for the time frequency
+%                       transform.
+%                 options.m -> scalar. Frequency bins for the time frequency
+%                       transform.
+%   Output:
+%         J_rec -> 3NdxNt. Reconstructed activity (solution)
+%         extras. -> Currently empty
 % Juan S. Castano C.
 % jscastanoc@gmail.com
 % 14 Aug 2013
@@ -8,7 +25,7 @@ function [J_rec extras] = nip_tfmxne(y,L,options)
 Nt = size(y,2);
 
 % Initialization of the TF-MxNE algorithm
-if ~isfield(options,'')||~isfield(options,'')
+if ~isfield(options,'a')||~isfield(options,'m')
     options.a = 10;
     options.m = 200;
 end
