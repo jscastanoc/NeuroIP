@@ -1,5 +1,5 @@
 function [J_est, extras] = nip_sflex(y, L, basis, reg_par)
-%  [J_est, extras] = nip_sflex(y, L, basis)
+%  [J_est, extras] = nip_sflex(y, L, basis, reg_par)
 % Implements "Large-scale EEG/MEG source localization with spatial
 % flexibility." by Haufe et al 2011
 %
@@ -35,11 +35,11 @@ nbasis = size(basis,2);
 
 
 [xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
-if sum(xx) == 0
-    [~,extras]=nip_loreta(y,L,speye(Nd));
-    reg_par = extras.regpar*30;
-    [xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
-end
+% if sum(xx) == 0
+%     [~,extras]=nip_loreta(y,L,speye(Nd));
+%     reg_par = extras.regpar*30;
+%     [xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
+% end
 J_est = basis*reshape(xx,nbasis,Nt);
 extras =[];
 
