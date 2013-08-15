@@ -28,11 +28,11 @@ data_name = 'montreal';
 
 sa = prepare_sourceanalysis(clab, data_name);
 
-temp = sa.V_cortex;
+temp = sa.V_cortex_coarse;
 L = reshape(permute(temp,[1 3 2]), size(temp,1), size(temp,2)*3); % Leadfield matrix
-clear temp
+% clear temp
 
-cfg.cortex = sa.cortex;
+cfg.cortex = sa.cortex_coarse;
 cfg.L = L;
 cfg.fs = 200; % Sample frequency (Hz)
 cfg.t = 0:1/cfg.fs:2; % Time vector (seconds)
@@ -64,11 +64,13 @@ Ntrials = 50;
 snr_meas = 10;
 snr_bio = 0;
 Nspurious = 200;
-[y, Jclean] = nip_simtrials(model.L, model.cortex, ...
+[y, Jclean] = nip_simtrials(model.L, model.cortex.vc, ...
         source_act, model.t, Nspurious , Ntrials, snr_meas, snr_bio);
     
-figure;
-nip_reconstruction3d(model.cortex,sqrt(sum(Jclean.^2,2)),gca);
+
     
-fuzzy = nip_fuzzy_sources(model.cortex, 0.1, data_name);
+para.R = model.cortex.vc;
+[S, out] = sstflex_dal3(y, temp, para);
+% figure;
+% nip_reconstruction3d(model.cortex,sqrt(sum(Jclean.^2,2)),gca);
     
