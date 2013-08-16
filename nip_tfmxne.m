@@ -30,12 +30,10 @@ if ~isfield(options,'a')||~isfield(options,'m')
     options.m = 200;
 end
 
-if ~isfield(options,'spatial_reg')
-    options.spatial_reg = 0.7;
-end
-if ~isfield(options,'temp_reg')
-    options.temp_reg = 0.05;
-end
+if ~isfield(options,'spatial_reg');options.spatial_reg = 0.7;end
+if ~isfield(options,'temp_reg');options.temp_reg = 0.05;end
+if ~isfield(options,'iter');options.iter = 5;end
+
 
 spatial_reg = options.spatial_reg;
 temp_reg = options.temp_reg;
@@ -55,10 +53,10 @@ J_recf = sparse(Nd,M);
 
 tau = 1;
 % lambda = 0.001; % Time regularization parameter
-mu = 0; % Spatial regularization parameter
+base_par= 0; % Spatial regularization parameter
 tempGY = L'*y;
 for i = 1:Nd
-    basepar = max(norm(tempGY(i,:),2),mu);
+    basepar = max(norm(tempGY(i,:),2),base_par);
 end
 mu = basepar*spatial_reg; % Spatial regularization parameter
 lambda = basepar*temp_reg; % Time regularization parameter
@@ -69,8 +67,7 @@ for i = 1:5
     tic
    fprintf('Iteration # %d ',i)
    % line 5 of algorithm 1 (see Ref paper)
-   Z_0 = Z; 
-   
+   Z_0 = Z;    
    
    % line 6 of algorithm 1 (see Ref paper)
    [act_dip,~] = ind2sub(size(Y),find(Y));
@@ -81,7 +78,7 @@ for i = 1:5
        end
    end
    error = y - L*J_rec;
-   err_trans = dgtreal(error.','gauss',a,M);
+   err_trans = dgtreal(error','gauss',a,M);
    err_trans = permute(err_trans,[3 1 2]);  
    err_trans = reshape(err_trans,Nc,[]);   
    arg_prox = (Y + mu*L'*err_trans);
@@ -98,6 +95,9 @@ for i = 1:5
    % line 9 of algorithm 1 (see Ref paper)
    Y = Z + ((tau_0-1)/tau)*(Z-Z_0);
    
+   figure
+   imagesc(full(abs(Y)))
+   pause(0.01);
    fprintf('Elapsed time: %f seconds\n',toc)
 end
 [act_dip,~] = ind2sub(size(Z),find(Z));
