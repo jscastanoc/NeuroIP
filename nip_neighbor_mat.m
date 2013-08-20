@@ -1,4 +1,4 @@
-function [Laplacian, QG] = nip_neighbor_mat(cortex)
+function [Laplacian] = nip_neighbor_mat(cortex)
 % [Laplacian, QG] = nip_neighbor_mat(cortex)
 % Computes the Laplacian matrix and the green function from the graph
 % laplacian.
@@ -10,7 +10,6 @@ function [Laplacian, QG] = nip_neighbor_mat(cortex)
 %
 % Output:
 %       Laplacian   -> NdxNd. Graph Laplacian.
-%       QG          -> Aproximation of the green function.
 % 
 % Additional Comments
 %
