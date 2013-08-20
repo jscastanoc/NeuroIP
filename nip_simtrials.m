@@ -1,4 +1,4 @@
-function [y, Jclean] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
+function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
 
 [Nc Nd] = size(L);
 Nt = length(t);
@@ -7,7 +7,6 @@ Nact = size(act,1);
 dir = randn(Nact,3);
 options.sample_all = true;
 [Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t, options);
-
 
 
 mask = ones(size(L,2),Nt);
@@ -28,7 +27,7 @@ for i = 1:Nact
 end
 
 sp_scale = norm(Jclean)/(10^(snr_bio/20)*norm(J));
-for n = 1:1:Ntrials
+for n = 1:Ntrials
     if mod(n,10) == 0   
         msg = sprintf('\rTrial # %d',n);
         fprintf([rev_line, msg]);
