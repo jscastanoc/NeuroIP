@@ -16,4 +16,8 @@ function status = nip_init()
     addpath(strcat(fileparts(which('nip_init')),'/external/fuzzy_sources'));
     addpath(strcat(fileparts(which('nip_init')),'/external/nway310/ver3.1'));
     addpath(strcat(fileparts(which('nip_init')),'/external/dal_ver1.05'));
+    addpath(strcat(fileparts(which('nip_init')),'/external/matlab_bgl'));
+    addpath(strcat(fileparts(which('nip_init')),'/external/FastEMD-3'));
+    addpath(strcat(fileparts(which('nip_init')),'/external/emd'));
+%     addpath(strcat(fileparts(which('nip_init')),'/external/prob'));
 end
