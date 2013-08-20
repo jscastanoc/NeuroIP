@@ -26,16 +26,19 @@ inv_Lap = Q;
 eye_Nc = speye(size(L,1));
 iLAP_LT = inv_Lap*L';
 
+fprintf('Computing GCV for LORETA... ')
+tic
 % Get the optimal regularization parameter
 gcv_fun = @(alpha) gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc);
-options = optimset('Display','iter','tolX',1e-6);
-% options = optimset('tolX',1e-6);
+% options = optimset('Display','iter','tolX',1e-6);
+options = optimset('tolX',1e-6);
 alpha = fminsearch(gcv_fun, 0.5,options);
 
 % Solution
 invT = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc);
 J_rec = invT*y;
 extras.regpar = alpha^2;
+fprintf('done! \nElapsed time: %.2d secs \n', toc)
 end
 
 
