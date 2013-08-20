@@ -14,37 +14,33 @@ function aff = nip_fuzzy_sources(cortex, sigma, file_name)
 % Additional comments: This function uses the graph toolbox to compute the
 % distance between each vertex.
 %
-% Juan S. Castaño C.
+% Juan S. Castanoo C.
+% jscastanoc@gmail.com
 % 14 Mar 2013
-if isfield(cortex, 'vc') && isfield(cortex,'tri')
-    cortex.vertices = cortex.vc;
-    cortex.vc = [];
-    cortex.faces = cortex.tri;
-    cortex.tri = [];
+
+
+if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
+    cortex.vc = cortex.vertices;
+    cortex.vertices = [];
+    cortex.tri = cortex.faces;
+    cortex.faces = [];
 end
 
-Nd = num2str(size(cortex.vertices,1));
-A    = sparse(triangulation2adjacency(cortex.faces));
+% Nd = num2str(size(cortex.vc,1));
+% A    = sparse(triangulation2adjacency(cortex.faces));
 
 % Search for a file with the precompute geodesic distances. If not found,
 % computes them and saves them in a file (This WILL take a while, grab a
-% snickers).
-if nargin < 3
-    file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
-end
-if exist(file_name,'file')
-    load(file_name)
-else
-    D   = compute_distance_graph(A);
-    save(file_name,'D');
-end
+% snickers). NOT ANYMORE!
+% if nargin < 3
+%     file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
+% end
+% if exist(file_name,'file')
+%     load(file_name)
+% else
+%     D   = compute_distance_graph(A);
+%     save(file_name,'D');
+% end
 
-% Normalization (so other functions work for meshes of different sizes)
-dd = pdist(cortex.vertices,'euclidean');
-dd = squareform(dd);
-dist_neighbor = mean(mean(sparse(A.*dd)));
-nD = dist_neighbor*D;
-nD = nD/max(max(nD));
-
-% Affinity /distance matrix with gaussians aroung each vertex
-aff = exp(-nD/sigma);
+aff = graphrbf(cortex);
+aff = exp(-aff.^2/sigma^2);
