@@ -36,7 +36,7 @@ Nt = length(t);
 options.null = 0;
 
 if ~isfield(options, 'sample_all')
-    options.sample_all = 0;
+    options.sample_all = 1;
 end
 
 % Normalize orientation vector
