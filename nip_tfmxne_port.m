@@ -53,7 +53,6 @@ K = size(c,1);
 Z = sparse(0,K*T);
 Y = sparse(Nd,K*T);
 J_rec = sparse(Nd,Nt);
-J_recf = sparse(Nd,M);
 
 
 tau = 1;
@@ -81,7 +80,7 @@ rev_line = '';
 eta = 0;
 for i = 1:options.iter
     tic;
-    msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f',i,stop,eta);
+    msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f \n',i,stop,eta);
     fprintf([rev_line, msg]);
     rev_line = repmat(sprintf('\b'),1,length(msg));
     
@@ -165,6 +164,8 @@ fprintf(' \nDone!... \nTransforming solution to the time domain: \n%d non-zero t
 
 temp =  reshape(full(Z)',K,T,[]);
 temp = flipdim(temp,2);
+
+J_recf = sparse(Nd,size(Y_time_as,2));
 J_recf(find(active_set),:) = flipud(idgtreal(temp,'gauss',a,M))';
 J_rec = J_recf(:,1:Nt);
 
