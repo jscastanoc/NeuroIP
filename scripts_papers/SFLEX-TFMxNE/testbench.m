@@ -1,4 +1,4 @@
-function [] = testbench(methods,iter)
+function [] = testbench(methods,iter,show_results,save_results)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% Testbench for LORETA SFLEX TFMxNE and Proposed %%%%%
@@ -9,7 +9,7 @@ function [] = testbench(methods,iter)
 % jscastanoc@gmail.com  %
 % 13 Aug 2013           %
 %%%%%%%%%%%%%%%%%%%%%%%%%
-
+nip_init();
 if nargin == 1
     iter = 1;
 end
@@ -28,21 +28,23 @@ warning off
 load clab_example;
 load clab_10_10;
 clab = clab_10_10;
-data_name = 'icbm152b_sym';
-% data_name = 'montreal';
+% data_name = 'icbm152b_sym';
+data_name = 'montreal';
 
 sa = prepare_sourceanalysis(clab, data_name);
 
-temp = sa.V_cortex10K;
+% temp = sa.V_cortex10K;
+temp = sa.V_cortex_coarse;
 L = nip_translf(temp); % Leadfield matrix
 L = L(find(ismember(clab_example,clab)),:);
 % L = nip_translf(temp); % Leadfield matrix
 clear temp
 
-cfg.cortex = sa.cortex10K;
+% cfg.cortex = sa.cortex10K;
+cfg.cortex = sa.cortex_coarse;
 cfg.L = L;
-cfg.fs = 200; % Sample frequency (Hz)
-cfg.t = 0:1/cfg.fs:2; % Time vector (seconds)
+cfg.fs = 100; % Sample frequency (Hz)
+cfg.t = 0:1/cfg.fs:1.5; % Time vector (seconds)
 model = nip_create_model(cfg);
 clear L sa cfg;
 
@@ -84,7 +86,7 @@ clear L sa cfg;
 
 if sum(ismember(methods,{'S+T','S-FLEX'}))
     nbasis = size(model.L,2)/3;
-    iter_basis = [2];
+    iter_basis = [1];
     basis = [];
     n = 1;
     group = [];
@@ -101,8 +103,8 @@ end
 
 model.L = nip_depthcomp(model.L,0.2);
 
-show_results = true;
-save_results = false;
+% show_results = true;
+% save_results = false;
 use_pre_sim = true;
 Ntrials = [100];
 
@@ -119,11 +121,13 @@ end
 for k = Ntrials;
     for j = 1:iter
         if use_pre_sim
-            dir = 'D:/Datasets/sim_trials/';
+            dir = 'D:/Datasets/sim_trials_final/1/';
             file_name = strcat(dir,'Exp',num2str(j),'Ntrials',...
                 num2str(k),'BioNoise',num2str(-15),'.mat');
             load(file_name);
-            model.y = y;
+            model.y = mgjob.results{1};
+            Jclean = mgjob.results{2};
+            actidx = mgjob.results{3};
         end
 
         for i = 1:numel(methods)
@@ -142,15 +146,15 @@ for k = Ntrials;
                     
                 case 'TF-MxNE'
                     options.iter = 50;
-                    options.spatial_reg = 4;
-                    options.temp_reg = 1.2;
+                    options.spatial_reg = 0.9;
+                    options.temp_reg = 0.2;
                     options.tol = 1e-2;
                     [J_rec,~] = nip_tfmxne_port(model.y,model.L,options);
                     
                 case 'S+T'
                     options.iter = 50;
-                    options.spatial_reg = 4;
-                    options.temp_reg = 1.2;
+                    options.spatial_reg = 0.9;
+                    options.temp_reg = 0.2;
                     options.tol = 1e-2;
                     [J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis{1},options);
                 otherwise
@@ -175,7 +179,12 @@ for k = Ntrials;
                 
                 figure(t_fig)
                 subplot(1,numel(methods)+1,i+1)
-                plot(model.t,J_rec((actidx-1)*3+1:(actidx-1)*3+3,:))
+                idx = [];
+                for i = 1:length(actidx)
+                    idx(:,i) = ((actidx(i)-1)*3+1:(actidx(i)-1)*3+3);
+                end
+                idx = idx(:);
+                plot(model.t,J_rec(idx-1,:))
             end
             
         end
