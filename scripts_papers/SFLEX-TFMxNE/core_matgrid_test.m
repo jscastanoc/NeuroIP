@@ -52,5 +52,6 @@ switch method
     otherwise
         error(strcat('Nah! ',method,' is not available'))
 end
+J_rec = sparse(J_rec);
 time = toc;
 end
