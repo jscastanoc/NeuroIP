@@ -2,6 +2,24 @@ function [J_rec time] = core_matgrid_test(model,method)
 
 iter_basis = [1.5];
 
+if sum(ismember(method,{'S+T','S-FLEX'}))
+    nbasis = size(model.L,2)/3;
+    basis = [];
+    n = 1;
+    group = [];
+    for i = iter_basis
+        fuzzy = nip_fuzzy_sources(model.cortex,i);
+        basisn = fuzzy(:,randi([1,model.Nd/3],nbasis,1));
+        basisn = basisn/norm(basisn(:),1);
+        basis{n} = basisn;
+        basis{n} = basis{n}/sum(basis{n}(:));
+        group = [group n*ones(1,nbasis)];
+        n = n+1;
+    end
+%     basis{1} = nip_blobnorm(basis{1},group,struct('norm',1,'norm_group',true));
+    
+end
+
 switch method
     case 'LOR'
         %                     [Laplacian] = nip_neighbor_mat(model.cortex);
