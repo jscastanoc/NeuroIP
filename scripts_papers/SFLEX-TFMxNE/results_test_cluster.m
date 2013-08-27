@@ -57,26 +57,27 @@ n_exp = 50;
 
 
 jobs_c = 1;
-methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
+% methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
+methods = {'S-FLEX'};
 for c_meth = 1:numel(methods)
     for j = 1:n_exp
         cur_jobs = [];
         copy_res = {};
-        for l = 1:act_sources
+        for l = 1:length(act_sources)
             for i = Ntrials
                 %                 [y, Jclean, actidx] = nip_simtrials(L, cortex.vc, ...
                 %                     source_act, t, Nspurious , i, snr_meas, snr_bio(k));
-                dir = strcat('/home/jscastanoc/sim_trials_final/',num2str(Nf),'/');
+                dir = strcat('/home/jscastanoc/sim_trials_final/',num2str(act_sources(l)),'/');
                 file_name = strcat(dir,'Exp',num2str(j),'Ntrials',...
                     num2str(i),'BioNoise',num2str(snr_bio),'.mat');
                 load(file_name);
                 model.y = mgjob.results{1};
-                jobs(jobs_c) =  mgsub({'J_rec', 'time'},'core_matgrid_test', ...
-                    {model , methods{c_meth}});
+                jobs(jobs_c) = mgsub({'J_rec', 'time'},'core_matgrid_test', ...
+                    {model , methods{c_meth}}, 'qsub_opts', '-l h_vmem=8G');
                 cur_jobs = [cur_jobs jobs(jobs_c)];
                 jobs_c = jobs_c + 1;
                 dir = strcat('/home/jscastanoc/Results_final/',num2str(act_sources(l)));
-                file_name = strcat(dir,'/Exp',num2str(j),'Ntrials',...
+                file_name = strcat(dir,'/',methods{c_meth},'Exp',num2str(j),'Ntrials',...
                     num2str(i),'BioNoise',num2str(snr_bio),'.mat');
                 %                 copy_res{jobs_c} = {file_name,jobs(jobs_c)}
                 copy_res{end+1} = file_name;
