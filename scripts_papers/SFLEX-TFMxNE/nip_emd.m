@@ -1,5 +1,5 @@
 function distance = nip_emd(Sol1, Sol2,cortex)
-
+% function distance = nip_emd(Sol1, Sol2,cortex)
 if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
     cortex.vc = cortex.vertices;
     cortex.vertices = [];

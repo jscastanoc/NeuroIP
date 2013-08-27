@@ -55,9 +55,9 @@ Y = sparse(Nd,K*T);
 J_rec = sparse(Nd,Nt);
 
 
+% Calculate Optimum regularization parameters
 tau = 1;
-% lambda = 0.001; % Time regularization parameter
-base_par = 0; % Spatial regularization parameter
+base_par = 0; 
 tempGY = L'*y;
 for i = 1:Nd
     basepar = max(norm(tempGY(i,:),2),base_par);
@@ -122,9 +122,7 @@ for i = 1:options.iter
         tau = 0.5+sqrt(1+4*tau^2)/2;
         
         Y = sparse(Nd,K*T);
-        
-        dt = (tau_0-1)/tau;
-        
+        dt = (tau_0-1)/tau;        
         Y(find(active_set),:) = (1 + dt)*Z;
         Y(find(active_set0),:)= Y(find(active_set0),:) - dt*Z_0;
 
@@ -154,6 +152,8 @@ for i = 1:options.iter
             break
         end
         
+        
+        % Residual
         R = y - L(:, find(Y_as))*Y_time_as(find(Y_as),1:Nt);
     end
     eta = toc;
