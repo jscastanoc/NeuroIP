@@ -28,7 +28,7 @@ switch method
         [J_rec,~] = nip_loreta(model.y,model.L,Q);
         
     case 'S-FLEX'
-        [S, out] = sflex_cortical_dal(model.y, nip_translf(model.L),model.cortex,...
+        [S, out] = sflex_cortical_dal(model.y, nip_translf(model.L),basis,...
             struct('eps',0.1,'sigma',iter_basis));
         J_rec = nip_trans_solution(S);
         
