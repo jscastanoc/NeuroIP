@@ -27,7 +27,8 @@ function [X, act_dip] = nip_simulate_activity(dip_pos, act_dip, act, dir, t, opt
 % Juan S. Castano
 % jscastanoc@gmail.com
 % 26 Jan 2013
-
+rng('default')
+rng('shuffle')
 
 
 Nd = size(dip_pos,1);

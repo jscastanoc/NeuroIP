@@ -1,5 +1,28 @@
 function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
+% [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
+%  Input:
+%         L -> Ncx3Nd. Lead Field matrix
+%         dip_pos -> Ndx3. Coordinates of each dipole
+%         act -> NactxNt. Time courses of the active dipoles.
+%         t -> 1xNt. Time vector (in secs).
+%         Nsp -> scalar. Number of Spurious/noise sources.
+%         Ntrials -> scalar. Number of trials to simulate.
+%         snr_meas -> scalar. SNR at the sensor level in each trial.
+%         snr_bio -> scalar. SNR at the source level in each trial.
+%   Output:
+%         y -> NcxNt. Measurements averaged across trials.
+%         Jclean -> 3NdxNt. Ground true. Brain activity without noise.
+%         actix. -> Nactx1. Indices of the active dipoles (as indexed in
+%               dip_pos.
+%
+% Juan S. Castano C.
+% jscastanoc@gmail.com
+% 19 Aug 2013
 
+
+
+rng('default')
+rng('shuffle')
 [Nc Nd] = size(L);
 Nt = length(t);
 
