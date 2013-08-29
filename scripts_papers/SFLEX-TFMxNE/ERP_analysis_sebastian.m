@@ -25,7 +25,8 @@ fname = strcat(session_list{ii}, '/AudiVisual_Depend_', num2str(icond) , '*');
 % break
 [ epo, epo_r, ivals, cnt, misc ] = stdERPanalysis(fname, {stim_target stim_nontarget; 'Target' 'Non-Target'}, ...
     'hp_filt', [.4, .2, 3, 30], 'lp_filt', [17 25 3 50],'varReject_freq_band', [5 25],  'ref_ival', []);
-% stdERPplots(epo, epo_r)
+stdERPplots(epo, epo_r)
+
 epo = proc_selectChannels(epo, scalpChannels);
 epo_avg = proc_average(epo);
 % data of non-target
@@ -38,8 +39,9 @@ for i = methods
     save('LOR','J_rec','model');
 end
 
-close all; 
 ff = figure('Units','normalized','position',[0.1 0.1 0.3 0.55]);
 nip_3d_video(model.cortex, J_rec, model.y, model.t,ff)
+
+
 
 
