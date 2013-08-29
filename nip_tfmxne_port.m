@@ -86,28 +86,32 @@ for i = 1:options.iter
     
     Z_0 = Z;   active_set0 = active_set;
     
-    if (sum(active_set) < size(R,1)) && ~isempty(Y_time_as)
-        GTR = L'*R/lipschitz_k;
-        A = GTR;
-        A(find(Y_as),:) = A(find(Y_as),:) + Y_time_as(find(Y_as),1:Nt);
-        [~, active_set_l21] = prox_l21(A,mu_lc,3);
-        idx_actsetl21 = find(active_set_l21);
-        
-        aux = dgtreal(GTR(idx_actsetl21,:)','gauss',a,M);
-        aux = permute(aux,[3 1 2]);
-        aux = reshape(aux,sum(active_set_l21),[]);
-        
-        B = Y(idx_actsetl21,:) + aux;
-        [Z, active_set_l1] = prox_l1(B,lambda_lc,3);
-        active_set_l21(idx_actsetl21) = active_set_l1;
-        active_set_l1 = active_set_l21;
-    else
+% The next section is supposed to be a shortcut// However it has a bug that
+% I haven't found... yet.
+% Don't Worry though, the code works well without it, it just take a little
+% longer.
+%     if (sum(active_set) < size(R,1)) && ~isempty(Y_time_as)
+%         GTR = L'*R/lipschitz_k;
+%         A = GTR;
+%         A(find(Y_as),:) = A(find(Y_as),:) + Y_time_as(find(Y_as),1:Nt);
+%         [~, active_set_l21] = prox_l21(A,mu_lc,3);
+%         idx_actsetl21 = find(active_set_l21);
+%         
+%         aux = dgtreal(GTR(idx_actsetl21,:)','gauss',a,M);
+%         aux = permute(aux,[3 1 2]);
+%         aux = reshape(aux,sum(active_set_l21),[]);
+%         
+%         B = Y(idx_actsetl21,:) + aux;
+%         [Z, active_set_l1] = prox_l1(B,lambda_lc,3);
+%         active_set_l21(idx_actsetl21) = active_set_l1;
+%         active_set_l1 = active_set_l21;
+%     else
         temp = dgtreal(R','gauss',a,M);
         temp = permute(temp,[3 1 2]);
         temp = reshape(temp,Nc,[]);
         Y = Y + L'*temp/lipschitz_k;
         [Z, active_set_l1] = prox_l1(Y,lambda_lc,3);
-    end
+%     end
     [Z, active_set_l21] = prox_l21(Z,mu_lc,3);
     active_set = active_set_l1;
     active_set(find(active_set_l1)) = active_set_l21;
