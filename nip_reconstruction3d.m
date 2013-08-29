@@ -63,7 +63,7 @@ h = patch('Faces', cortex_smooth.faces, 'Vertices', cortex_smooth.vertices,'Face
 colorbar
 colormap autumn
 
-caxis([min(data(sig_idx)) max(data(sig_idx))]) 
+caxis([min(data(sig_idx))-1e-5 max(data(sig_idx))+1e-5]) 
 
 axis equal;
 axis off;
