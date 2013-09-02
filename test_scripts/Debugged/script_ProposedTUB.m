@@ -119,7 +119,7 @@ ylabel('Amplitude')
 
 % Simulation - Spatial
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_clean.^2,2)), gca);
+nip_reconstruction3d(model.cortex, sqrt(sum(J_clean.^2,2)), struct('axes',gca));
 hold on
 scatter3(model.cortex.vc(active,1),model.cortex.vc(active,2),model.cortex.vc(active,3),'filled');
 
@@ -132,5 +132,5 @@ ylabel('Amplitude')
 
 % Reconstruction - Spatial
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_rec.^2,2)), gca);
+nip_reconstruction3d(model.cortex, sqrt(sum(J_rec.^2,2)), struct('axes',gca));
            

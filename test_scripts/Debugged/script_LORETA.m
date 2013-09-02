@@ -73,7 +73,7 @@ ylabel('Amplitude')
 % t_0 = 25ms
 t_0 = 0.025*model.fs;
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-nip_reconstruction3d(model.cortex, J(:,t_0), gca);
+nip_reconstruction3d(model.cortex, J(:,t_0), struct('axes',gca));
 
 %%% Visualizacion de la reconstruccion %%%
 %Temporal
@@ -86,4 +86,4 @@ ylabel('Amplitude')
 % t_0 = 25ms
 t_0 = 0.025*model.fs;
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-nip_reconstruction3d(model.cortex, J_est(:,t_0), gca);
+nip_reconstruction3d(model.cortex, J_est(:,t_0),  struct('axes',gca));

@@ -1,27 +1,53 @@
-function h = nip_reconstruction3D(cortex, data, a_handle)
+function h = nip_reconstruction3D(cortex, data, varargin)
 % h = nip_reconstruction3D(cortex, data, a_handle)
-% Shows the activity 'data' in the volume described by 'mesh'.
+% Shows the activity 'data' in the volume described by 'cortex'.
 % Input:
 %       cortex -> struct. Describes the volume to be drawn. Should contain
-%               the fields 'faces' and 'vertices' corresponding to the graph 
+%               the fields 'faces' (or tri) and 'vertices' (or vc) corresponding to the graph 
 %               of the tessellated brain surface.
 %       data -> Ndx1. Vector with an unnormalized representation of the
 %               colors of each vertex mesh.vertices.
-%       a_handle -> axes handle. This is where the volume is going to be
-%               drawn.
+%       options -> varargin Different options for the plot:
+%               .view -> 1x2. Vector containing azimut and elevation of the
+%                   camera (same as matlab's view fuction).
+%               .colormap -> string. colormap to be use in the
+%                   plot. Only 'autumn' and 'jet' supported.
+%               .thres -> Scalar. Minimum Percentage of energy to display
+%                   e.g. if 0.05 then only the dipoles with atleast 5% energy
+%                   of the most active dipole are plotted with the colormap,
+%                   the "inactive" dipoles are painted gray.
+%               .colorbar -> String. 'on' or 'off', controls the display of
+%                   the colorbar.
+%               .axes -> Axes where the patch is going to be displayed.
+%               
 % Output:
 %       h -> patch handle.
-%
-% Additional comments :
-% Based on a script written by Eduardo Giraldo.
 %
 % Juan S. Castano C.
 % jscastanoc@gmail.com
 % 26 Jan 2013
 
+options = varargin{1};
+if ~isfield(varargin{1},'view'); 
+    options.view = [0 0]; 
+end
+    
+if ~isfield(varargin{1},'colormap'); 
+    options.colormap = 'jet'; 
+end
 
-% Map the information contained in data to the corresponding colormap
-% codification
+if ~isfield(varargin{1},'thres'); 
+    options.thres = 0.05;
+end
+
+if ~isfield(varargin{1},'colorbar'); 
+    options.colorbar = 'off';
+end
+
+if ~isfield(varargin{1},'axes'); 
+    options.axes = gca;
+end
+
 if isfield(cortex, 'vc') && isfield(cortex,'tri')
     cortex.vertices = cortex.vc;
     cortex.faces = cortex.tri;
@@ -33,38 +59,42 @@ data_m = zeros(Nd/3,1);
 for i = 1:Nd/3
     data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
 end
-data = data_m;
 
-data = abs(data)-min(abs(data));
-x_tik = data;
-insig_idx =  find(abs(data) < max(abs(data))*0.05);
-sig_idx =  find(abs(data) >= max(abs(data))*0.05);
+if ~isfield(varargin{1},'crange');
+    options.crange = [min(data_m(:)),max(data_m(:))];
+end
+[crange] = options.crange;
+
+data_m =abs(data_m)- crange(1);
+data_m = data_m/crange(2);
+
+
+insig_idx =  find(abs(data_m) < max(abs(data_m))*options.thres);
+sig_idx =  find(abs(data_m) >= max(abs(data_m))*options.thres);
 
 nc=256;
-[n,T]=size(x_tik);
-[v1,vi]=max(x_tik,[],2);
-[v2,vi2]=max(v1);
-vc= autumn(nc); % If you want to change the colormap used, here is where you should do it
-[c,x1] = hist(x_tik(:,vi(vi2)),nc);
-di=mean(diff(x1));
-vca=zeros(n,3);
-k=1;
-for k1=1:nc;
-    In=find((x_tik(:,k)>=x1(k1)-di) & (x_tik(:,k)<x1(k1)+di));
-    vca(In,1:3)=(vc(k1,:)'*ones(1,length(In)))';
+switch options.colormap
+    case 'autumn'   
+        vc= autumn(nc);
+    case 'jet'
+        vc= jet(nc);
 end
+datac = floor(data_m*(nc-1))+1;
+datac(find(datac > (nc-1))) = nc-1;
+vca = vc(datac,:);
+
 
 vca(insig_idx,:) = repmat([255 255 255]/275, length(insig_idx),1);
 
-axes(a_handle)
+axes(options.axes)
 cla
 cortex_smooth = cortex;
 h = patch('Faces', cortex_smooth.faces, 'Vertices', cortex_smooth.vertices,'FaceVertexCData',vca,'FaceColor','interp');
-colorbar
-colormap autumn
+colorbar(options.colorbar)
+colormap(options.colormap)
+view(options.view);
 
 caxis([min(data(sig_idx))-1e-5 max(data(sig_idx))+1e-5]) 
-
 axis equal;
 axis off;
 set(h,'edgecolor','none');

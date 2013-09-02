@@ -1,5 +1,5 @@
 function [X, act_dip] = nip_simulate_activity(dip_pos, act_dip, act, dir, t, options)
-% X = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
+% [X, act_dip] = nip_simulate_activity(cortex, act_dip, act, dir, t, options)
 % 
 % Input:
 %       dip_pos     -> Ndx3. Array with the positions of the electrodes
