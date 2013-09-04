@@ -14,7 +14,7 @@ session_list = get_session_list('D:\bbci\investigation\projects\AudioVisualSpell
 stim_target = [31:36 81:86 111:116];
 stim_nontarget = [11:16 61:66 91:96];
 
-ii=3 %for ii = 1:length(session_list)
+ii=1 %for ii = 1:length(session_list)
 icond = 1;
 % dir = 'D:/Datasets/real_data/';
 fname = strcat(session_list{ii}, '/AudiVisual_Depend_', num2str(icond) , '*');
@@ -26,7 +26,7 @@ fname = strcat(session_list{ii}, '/AudiVisual_Depend_', num2str(icond) , '*');
 [ epo, epo_r, ivals, cnt, misc ] = stdERPanalysis(fname, {stim_target stim_nontarget; 'Target' 'Non-Target'}, ...
     'hp_filt', [.4, .2, 3, 30], 'lp_filt', [17 25 3 50],'varReject_freq_band', [5 25],  'ref_ival', []);
 stdERPplots(epo, epo_r)
-
+break
 epo = proc_selectChannels(epo, scalpChannels);
 epo_avg = proc_average(epo);
 % data of non-target
@@ -39,8 +39,8 @@ for i = methods
     save('LOR','J_rec','model');
 end
 
-ff = figure('Units','normalized','position',[0.1 0.1 0.3 0.55]);
-nip_3d_video(model.cortex, J_rec, model.y, model.t,ff)
+% ff = figure('Units','normalized','position',[0.1 0.1 0.3 0.55]);
+% nip_3d_video(model.cortex, J_rec, model.y, model.t,ff)
 
 
 
