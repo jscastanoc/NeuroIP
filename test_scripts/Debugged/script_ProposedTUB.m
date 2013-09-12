@@ -2,7 +2,8 @@ clc, close all, clear;
 
 rng('default')
 rng('shuffle');
-
+nip_init();
+ltfatstart; % Init Time frequency toolbox
 warning off
 
 load clab_example
@@ -10,7 +11,6 @@ load clab_10_10;
 clab = clab_10_10;
 % data_name = 'icbm152b_sym';
 data_name = 'montreal';
-
 sa = prepare_sourceanalysis(clab, data_name);
 
 temp = sa.V_cortex_coarse;
@@ -45,11 +45,11 @@ end
 source_act = source;
 clear source;
 
-% Simulation of the EEG (Ntrial Averages)
+% Simulation of the EEG (Ntrial Averaged)
 Ntrials = 50;
-snr_meas = 10;
-snr_bio = 0;
-Nspurious = 200;
+snr_meas = 10; % SNR at sensor level
+snr_bio = 0; % SNR at source level
+Nspurious = 200; % Number of active "spurious" dipoles
 [model.y, J_clean, active] = nip_simtrials(model.L, model.cortex.vc, ...
     source_act, model.t, Nspurious , Ntrials, snr_meas, snr_bio);
 
@@ -60,12 +60,12 @@ model.L = nip_depthcomp(model.L,0.2); % Depth bias compensation for the lead fie
 
 method = 'S+T'; % Inversion method
 
-
-
+% Generation of the Spatial basis functions (only for the new method and
+% S-FLEX
 if (strcmp(method,'S-FLEX')||strcmp(method,'S+T'))
     % Construction of the spatial basis functions
     nbasis = size(model.L,2)/3;
-    iter_basis = [1]; % Width of the spatial
+    iter_basis = [1]; % Width of the spatial basis functions
     basis = [];
     n = 1;
     group = [];
@@ -79,6 +79,8 @@ if (strcmp(method,'S-FLEX')||strcmp(method,'S+T'))
         n = n+1;
     end
 end
+
+
 switch method
     case 'LOR' % LORETA
         [Laplacian] = nip_neighbor_mat(model.cortex);
@@ -111,7 +113,7 @@ end
 %%%%%%%%%%%%%%%%%
 % Visualization %
 %%%%%%%%%%%%%%%%%
-% Reconstruction - Temporal
+% Simulation - Temporal
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 plot(model.t,J_clean')
 xlabel('Time')
@@ -133,4 +135,6 @@ ylabel('Amplitude')
 % Reconstruction - Spatial
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
 nip_reconstruction3d(model.cortex, sqrt(sum(J_rec.^2,2)), struct('axes',gca));
+hold on
+scatter3(model.cortex.vc(active,1),model.cortex.vc(active,2),model.cortex.vc(active,3),'filled');
            
