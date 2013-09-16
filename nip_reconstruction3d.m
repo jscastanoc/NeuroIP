@@ -37,7 +37,7 @@ if ~isfield(varargin{1},'colormap');
 end
 
 if ~isfield(varargin{1},'thres'); 
-    options.thres = 0.05;
+    options.thres = 0.01;
 end
 
 if ~isfield(varargin{1},'colorbar'); 
@@ -81,20 +81,26 @@ switch options.colormap
 end
 datac = floor(data_m*(nc-1))+1;
 datac(find(datac > (nc-1))) = nc-1;
-vca = vc(datac,:);
 
-
-vca(insig_idx,:) = repmat([255 255 255]/275, length(insig_idx),1);
-
+try
+    vca = vc(datac,:);
+    vca(insig_idx,:) = repmat([255 255 255]/275, length(insig_idx),1);
+    noactdip = false;
+catch
+    vca = repmat([255 255 255]/275, size(cortex.vertices,1),1);
+    noactdip = true;
+    warning('No active dipoles mapped')
+end
 axes(options.axes)
 cla
-cortex_smooth = cortex;
-h = patch('Faces', cortex_smooth.faces, 'Vertices', cortex_smooth.vertices,'FaceVertexCData',vca,'FaceColor','interp');
+h = patch('Faces', cortex.faces, 'Vertices', cortex.vertices,'FaceVertexCData',vca,'FaceColor','interp');
 colorbar(options.colorbar)
 colormap(options.colormap)
 view(options.view);
 
-caxis([min(data(sig_idx))-1e-5 max(data(sig_idx))+1e-5]) 
+if ~noactdip
+    caxis([min(data(sig_idx))-1e-5 max(data(sig_idx))+1e-5]) 
+end
 axis equal;
 axis off;
 set(h,'edgecolor','none');
