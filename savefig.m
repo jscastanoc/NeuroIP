@@ -1,4 +1,30 @@
-function savefig(fname, varargin)
+function savefig(fname,varargin)
+    
+    savefigcore(fname,varargin{:});    
+    
+    if strncmp(system_dependent('getos'),'Linux',5)
+        s = dir([fname '.eps']);
+        if ( ~isempty(s) && (s.bytes/(1024^2) > 2) )           
+            command = ['rm ' fname '.eps'];
+            system(command,'-echo');
+            
+            savefig(fname,varargin{1},'png');
+            
+            command = ['png2eps ' fname '.png > ' fname '.eps'];
+            system(command,'-echo');
+            
+            command = ['rm ' fname '.png'];
+            system(command,'-echo');
+            
+        end
+        
+    end
+    
+
+end
+
+
+function savefigcore(fname, varargin)
 	
 % Usage: savefig(filename, fighdl, options)
 %
