@@ -1,10 +1,10 @@
 % Plot script for Figure 2 Real Data
 
 close all, clc, clear;
-
-addpath('../../external/source_toolbox/haufe/')
-addpath('../../external/source_toolbox/nolte/')
-addpath('../../external/source_toolbox/simulations/')
+nip_init()
+% addpath('../../external/source_toolbox/haufe/')
+% addpath('../../external/source_toolbox/nolte/')
+% addpath('../../external/source_toolbox/simulations/')
 rng('default')
 rng('shuffle');
 
@@ -37,10 +37,10 @@ clear L cfg;
 
 methods = {'S+T'};
 
-startup_bbcicluster;
-session_list = get_session_list('D:\bbci\investigation\projects\AudioVisualSpeller');
+startup_bbci;
+session_list = get_session_list(strcat(fileparts(which('script_figure_2'))));
 
-cond = 2;
+cond =1;
 % for j = 9:15 %9 13 14 7
 % for j = [7 9 13 14]
 stim_target = [31:36 81:86 111:116];
@@ -54,7 +54,7 @@ n_total = 1;
 for j = 1:15
     session_n = session_list{j};
     for i = 1:numel(methods)
-        res_dir = 'D:/Results_final_real/';
+        res_dir = '/mnt/data/ResultadosBerlin/Results_final_real_norm/';
         file_name = strcat(res_dir,session_n,'/',methods{i},'Cond',num2str(cond),'.mat');
         load(file_name);
         J_rec = mgjob.results{1};
@@ -85,7 +85,7 @@ nip_reconstruction3d(model.cortex, J_avg,options3d);
 
 
 
-fig_name =strcat('D:/Figures2/', class,'Cond',num2str(cond));
-savefig(fig_name, ff, 'pdf');
-savefig(fig_name, ff, 'eps');
-savefig(fig_name, ff, 'png');
+% fig_name =strcat('/mnt/data/ResultadosBerlin/Figures2_norm/', class,'Cond',num2str(cond));
+% savefig(fig_name, ff, 'pdf');
+% savefig(fig_name, ff, 'eps');
+% savefig(fig_name, ff, 'png');

@@ -2,6 +2,7 @@
 
 close all, clc, clear;
 
+
 addpath('../../external/source_toolbox/haufe/')
 addpath('../../external/source_toolbox/nolte/')
 addpath('../../external/source_toolbox/simulations/')
@@ -15,6 +16,9 @@ load clab_10_10;
 clab = clab_10_10;
 % data_name = 'icbm152b_sym';
 data_name = 'montreal';
+
+nip_init();
+startup_bbci;
 
 sa = prepare_sourceanalysis(clab, data_name);
 
@@ -37,8 +41,7 @@ clear L cfg;
 
 methods = {'S+T'};
 
-startup_bbcicluster;
-session_list = get_session_list('D:\bbci\investigation\projects\AudioVisualSpeller');
+session_list = get_session_list(strcat(fileparts(which('script_figure_3'))));
 
 
 % for j = 9:15 %9 13 14 7
@@ -46,14 +49,14 @@ session_list = get_session_list('D:\bbci\investigation\projects\AudioVisualSpell
 stim_target = [31:36 81:86 111:116];
 stim_nontarget = [11:16 61:66 91:96];
 
-    
+res_dir = '/mnt/data/ResultadosBerlin/Results_final_real/';
 class1 = 'Non-Target';
 n_total = 1;
-cond1 = 1;
+cond1 = 2;
 for j = 1:15
     session_n = session_list{j};
     for i = 1:numel(methods)
-        res_dir = 'D:/Results_final_real/';
+        ;
         file_name = strcat(res_dir,session_n,'/',methods{i},'Cond',num2str(cond1),'.mat');
         load(file_name);
         J_rec = mgjob.results{1};
@@ -67,13 +70,13 @@ for j = 1:15
     end
 end
 
-class2 = 'Non-Target';
+res_dir = '/mnt/data/ResultadosBerlin/Results_final_real_Target/';
+class2 = 'Target';
 n_total = 1;
 cond2 = 2;
 for j = 1:15
     session_n = session_list{j};
     for i = 1:numel(methods)
-        res_dir = 'D:/Results_final_real/';
         file_name = strcat(res_dir,session_n,'/',methods{i},'Cond',num2str(cond2),'.mat');
         load(file_name);
         J_rec = mgjob.results{1};        
@@ -86,11 +89,12 @@ for j = 1:15
     end
 end
 
-for i = 1:12
-J_v1(:,i) = nip_energy(J_v(:,i+2));
+nlim = min(size(J_a,2),size(J_v,2));
+for i = 1:nlim
+J_v1(:,i) = nip_energy(J_v(:,i));
 J_a1(:,i) = nip_energy(J_a(:,i));
 end
-[h, pval, ci, stats] = ttest(J_v1',J_a1');
+[h, pval, ci, stats] = ttest(J_v(:,1:nlim)',J_a(:,1:nlim)');
 J_avg = stats.tstat;
 % J_avg(find(J_avg>0) = J_avg(find(J_avg>0)))
 % Options for 3d plot
@@ -103,22 +107,20 @@ viewdirs = {[0 -1e-6 -1], [-1 0 0], [0 1 0], [0 1e-6 1], [1 0 0], [0 -1 0]};
 S = nip_trans_solution(J_avg);
 S = J_avg;
 % S = J_avg;
-figure; showsurface(model.cortex, struct('myviewdir', viewdirs{1}, 'colorbars', 1, 'myfontsize', 30), S');
-zlab = get(h.cb, 'ylabel');
-set(h.cb, 'fontsize', 24)
-set(zlab, 'String', 'A.U.', 'fontsize', 30)
+% figure; showsurface(model.cortex, struct('myviewdir', viewdirs{1}, 'colorbars', 1, 'myfontsize', 30), S');
+% zlab = get(h.cb, 'ylabel');
+% set(h.cb, 'fontsize', 24)
+% set(zlab, 'String', 'A.U.', 'fontsize', 30)
 
 ff = figure('Units','normalized','position',[0.1 0.1 0.3 0.2]);
 subplotxl(1,2,1)
 options3d.view= [90 0];
-nip_reconstruction3d(model.cortex, J_avg,options3d);
+nip_reconstruction3d(model.cortex, J_avg',options3d);
 subplotxl(1,2,2)
 options3d.view= [-90 0];
-nip_reconstruction3d(model.cortex, J_avg,options3d);
+nip_reconstruction3d(model.cortex, J_avg',options3d);
 
-
-
-fig_name =strcat('D:/Figures3/',num2str(cond1),num2str(cond2),class1,class2);
-savefig(fig_name, ff, 'pdf');
+fig_name =strcat('/mnt/data/ResultadosBerlin/Figures3/',num2str(cond1),num2str(cond2),class1,class2);
+% savefig(fig_name, ff, 'pdf');
 savefig(fig_name, ff, 'eps');
-savefig(fig_name, ff, 'png');
+% savefig(fig_name, ff, 'png');

@@ -57,7 +57,7 @@ if isscalar(act_dip)
             dists = dist([dip_pos; point]' );
             [~, idx] = sort(dists(end,:),'descend');
             temp = 1.6;
-            act_dip = randsample(Nd/temp,act_dip);
+            act_dip = randsample(floor(Nd/temp),act_dip);
             act_dip = idx(act_dip);
         end
 elseif ismatrix(act_dip)

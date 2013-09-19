@@ -25,6 +25,7 @@ function J_rec = nip_trans_solution(S)
 % Juan S. Castanoo C.
 % jscastanoc@gmail.com
 % 14 Mar 2013
+[Nd,~,Nt] = size(S);
 if ndims(S) == 3
     J_rec = permute(S,[3 1 2]);
     J_rec = nip_translf(J_rec)';
