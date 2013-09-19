@@ -52,6 +52,7 @@ if isfield(cortex, 'vc') && isfield(cortex,'tri')
     cortex.vertices = cortex.vc;
     cortex.faces = cortex.tri;
 end
+
 Nd = length(data);
 
 % Compute the magnitude of the activity in each dipole

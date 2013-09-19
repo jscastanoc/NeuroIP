@@ -27,20 +27,22 @@ if nargin <=3
 end
 % reg_par = 1e-2;
 
-% --- Not sure if I should do this here (you'll need a lot of ram if data
-% is big enough
-A = sparse(kron(speye(Nt), L*basis)); 
-
+index = (1:3:Nd);
+for i = 0:2
+    L(:,index+i) = L(:,index+i)*basis; % J simulado FINAL
+end
+% --- Not sure if I should do this here (you'll need a lot of ram)
+% L = nip_translf(L);
+A = sparse(kron(speye(Nt), L)); 
 nbasis = size(basis,2);
 
+reg_par = 1e-4;
+[xx,status]=dalsqgl(zeros(nbasis*3,Nt), A, y(:), reg_par);
+for i = 0:2
+    xx(index+i,:) = basis*xx(index+i,:); % J simulado FINAL
+end
+J_est = xx;
 
-[xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
-% if sum(xx) == 0
-%     [~,extras]=nip_loreta(y,L,speye(Nd));
-%     reg_par = extras.regpar*30;
-%     [xx,status]=dalsqgl(zeros(nbasis/3,3*Nt), A, y(:), reg_par);
-% end
-J_est = basis*reshape(xx,nbasis,Nt);
 extras =[];
 
 end

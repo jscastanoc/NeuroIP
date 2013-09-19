@@ -1,4 +1,4 @@
-function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
+function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio, options)
 % [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
 %  Input:
 %         L -> Ncx3Nd. Lead Field matrix
@@ -9,6 +9,7 @@ function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,sn
 %         Ntrials -> scalar. Number of trials to simulate.
 %         snr_meas -> scalar. SNR at the sensor level in each trial.
 %         snr_bio -> scalar. SNR at the source level in each trial.
+%         options -> same as nip_simulate_activity
 %   Output:
 %         y -> NcxNt. Measurements averaged across trials.
 %         Jclean -> 3NdxNt. Ground true. Brain activity without noise.
@@ -20,7 +21,6 @@ function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,sn
 % 19 Aug 2013
 
 
-
 rng('default')
 rng('shuffle')
 [Nc Nd] = size(L);
@@ -28,8 +28,7 @@ Nt = length(t);
 
 Nact = size(act,1);
 dir = randn(Nact,3);
-options.sample_all = true;
-[Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t, options);
+[Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t,options);
 
 
 mask = ones(size(L,2),Nt);
@@ -39,11 +38,12 @@ end
 
 J = zeros(Nd,Nt);
 y_avg = zeros(Nc,Nt);
-fprintf('Simulating trials and averaging ... \n')
+fprintf('Simulating trials and averaging ...\n')
 rev_line = '';
 
 dir = randn(Nsp,3);
 sp_act = mkpinknoise(Nt,Nsp)';
+options.sample_all = true;
 J = nip_simulate_activity(dip_pos,Nsp, sp_act, dir, t,options);
 for i = 1:Nact
     J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
@@ -52,7 +52,7 @@ end
 sp_scale = norm(Jclean)/(10^(snr_bio/20)*norm(J));
 for n = 1:Ntrials
     if mod(n,10) == 0   
-        msg = sprintf('\rTrial # %d',n);
+        msg = sprintf('Trial # %d',n);
         fprintf([rev_line, msg]);
         rev_line = repmat(sprintf('\b'),1,length(msg));
     end
@@ -81,5 +81,5 @@ end
 fprintf('\n')
 
 y = y_avg;
-
+Jclean = sparse(Jclean);
 end

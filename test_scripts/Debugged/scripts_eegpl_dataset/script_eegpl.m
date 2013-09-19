@@ -21,7 +21,8 @@ cfg.hpfreq   =      0.5;
 % cfg.demean   =      'yes';
 data_org        = ft_preprocessing(cfg,data_org);
 
-time_window = data_org.fsample*[40 41];
+% time_window = data_org.fsample*[6*60+56 6*60+57];
+time_window = data_org.fsample*[45 46];
 
 t = data_org.time{1}(time_window(1):time_window(2));
 y = data_org.trial{1}(:, time_window(1):time_window(2));

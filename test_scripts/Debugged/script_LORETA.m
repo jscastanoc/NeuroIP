@@ -6,14 +6,11 @@ nip_init();
 % Preproceso / simulacion %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Numero de dipolos a considerar
-Nd = 2000; % 2000, 4000
-
 % Cargar datos(lead field, mesh del cerebro etc...
-load(strcat('../../data/nocons_or/montreal',num2str(Nd),'_full1shell.mat'))
+load(strcat('../../data/montreal_lf_coarse.mat'))
 
-cfg.L = lf;
-cfg.cortex = cortex_mesh;
+cfg.L = L;
+cfg.cortex = cortex;
 cfg.fs = 200; % Frecuencia de muestreo para la simulacion
 cfg.t = 0:1/cfg.fs:1; % Vector de tiempo
 
@@ -57,6 +54,8 @@ model.y = nip_addnoise(clean_y, snr);
 Q = eye(model.Nd); %Matriz de covarianza apriori
 [J_est, extras] = nip_loreta(model.y, model.L, Q);
 % J_est = nip_sloreta(model.y,model.L);
+% Q = diag(sqrt(sum(J_est,2)));
+% [J_est, extras] = nip_loreta(model.y, model.L, Q);
 
 
 %%%%%%%%%%%%%%%%%
