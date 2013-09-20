@@ -12,8 +12,7 @@ if sum(ismember(method,{'S+T','S-FLEX'}))
         fuzzy = nip_fuzzy_sources(model.cortex,i);
         basisn = fuzzy(:,randi([1,model.Nd/3],nbasis,1));
         basisn = basisn/norm(basisn(:),1);
-        basis{n} = basisn;
-        basis{n} = basis{n}/sum(basis{n}(:));
+        basis = [basis basisn];
         group = [group n*ones(1,nbasis)];
         n = n+1;
     end
@@ -21,9 +20,9 @@ end
 
 switch method
     case 'LOR'
-        [Laplacian] = nip_neighbor_mat(model.cortex);
-        Q = inv(Laplacian*Laplacian');
-        %         Q = speye(model.Nd);
+%         [Laplacian] = nip_neighbor_mat(model.cortex);
+%         Q = inv(Laplacian*Laplacian');
+         Q = speye(model.Nd);
         [J_rec,~] = nip_loreta(model.y,model.L,Q);
         
     case 'S-FLEX'
@@ -54,7 +53,7 @@ switch method
         options.tol = 1e-2;
         options.a = 10;
         options.M = 200;
-        [J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis{1},options);
+        [J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis,options);
     otherwise
         error(strcat('Nah! ',method,' is not available'))
 end

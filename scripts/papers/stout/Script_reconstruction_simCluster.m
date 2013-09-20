@@ -9,11 +9,11 @@
 
 
 % Initialization and creation of the structures used in some functions
-close all; clc; clear
-
-addpath('../../external/source_toolbox/haufe/')
-addpath('../../external/source_toolbox/nolte/')
-addpath('../../external/source_toolbox/simulations/')
+close all; clc; clear;
+addpath('/home/jscastanoc/svn_test/matgrid');
+addpath('/home/jscastanoc/bbci/toolbox/startup');
+addpath('/home/jscastanoc/NeuroIP');
+nip_init();
 rng('default')
 rng('shuffle');
 
@@ -44,7 +44,7 @@ Ntrials = [5 20 50 100 250];
 act_sources = [1 3 5];
 % Ntrials = [210];
 snr_meas = 0;
-snr_bio = -5;
+snr_bio = 5;
 % snr_bio = [5]
 snr = [];
 % t = model.t;
@@ -53,7 +53,7 @@ snr = [];
 % cortex = model.cortex;
 % clear model;
 
-n_exp = 50;
+n_exp = 1;
 
 
 jobs_c = 1;
@@ -73,7 +73,7 @@ for c_meth = 1:numel(methods)
                 load(file_name);
                 model.y = y;
                 
-                jobs(jobs_c) = mgsub({'J_rec', 'time'},'core_matgrid_test', ...
+                jobs(jobs_c) = mgsub({'J_rec', 'time'},'solvers_ip', ...
                     {model , methods{c_meth}}, 'qsub_opts', '-l h_vmem=8G');
                 cur_jobs = [cur_jobs jobs(jobs_c)];
                 jobs_c = jobs_c + 1;
