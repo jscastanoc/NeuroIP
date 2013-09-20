@@ -1,9 +1,9 @@
-% See simulations.
+% Script to review the results of the reconstruction using simulations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % Juan S. Castano C.    %
 % jscastanoc@gmail.com  %
-% 19 Sep 2013           %
+% 20 Sep 2013           %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 close all; clc; clear all
 
@@ -28,7 +28,7 @@ clear temp
 cfg.cortex = sa.cortex_coarse;
 cfg.L = L;
 cfg.fs = 120; % Sample frequency (Hz)
-cfg.t = 0:1/cfg.fs:1; % Time vector (seconds)
+cfg.t = 0:1/cfg.fs:1.5; % Time vector (seconds)
 model = nip_create_model(cfg);
 clear L sa;
 
@@ -40,9 +40,9 @@ Nspurious = 200; % Number of source with spurious activity in each simulation
 
 
 % Mean of the time shift of the wavelets (1 3 and 5 active sources)
-% phase_shift{1} = [0.75];
-phase_shift{1} = [0.375 0.75 1.25];
-% phase_shift{3} = [0.250 0.500 0.750 1.000 1.250];
+phase_shift{1} = [0.75];
+phase_shift{2} = [0.375 0.75 1.25];
+phase_shift{3} = [0.250 0.500 0.750 1.000 1.250];
 
 % Number of Experiments
 n_exp = 50;
@@ -57,7 +57,11 @@ sched = findResource('scheduler', 'configuration', 'local');
 % sched = parcluster();
 job = createJob(sched);
 dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
-figure('Units','normalized','position',[0.2 0.2 0.14 0.4]);
+dir_base_res = '/mnt/data/Datasets/results/montreal_sampleall_false/';
+method = 'LOR';
+
+simfig = figure('Units','normalized','position',[0.1 0.2 0.14 0.4]);
+recfig = figure('Units','normalized','position',[0.3 0.2 0.14 0.4]);
 for l = 1:numel(phase_shift)
     ps = phase_shift{l};
     for k = 1:length(snr_bio)
@@ -67,6 +71,7 @@ for l = 1:numel(phase_shift)
                 file_name = strcat(dir,'/Exp',num2str(j),'Ntrials',...
                     num2str(i),'BioNoise',num2str(snr_bio(k)),'.mat');
                 load(file_name)
+                figure(simfig)
                 subplot(3,1,1)
                 nip_reconstruction3d(model.cortex,sqrt(sum(Jclean.^2,2)),[]);
                 hold on;
@@ -74,10 +79,33 @@ for l = 1:numel(phase_shift)
                     model.cortex.vc(actidx,2),model.cortex.vc(actidx,3),'ok','filled');
                 subplot(3,1,2)                
                 plot(model.t,y);
-                subplot(3,1,3)            
+                subplot(3,1,3)   
+                cla;
                 fullidx = (actidx-1)*3 +1;
-                for i = 1:length(fullidx)
-                plot(model.t,Jclean(fullidx(i):fullidx(i) + 2,:));
+                for kk = 1:length(fullidx)
+                    plot(model.t,Jclean(fullidx(kk):fullidx(kk) + 2,:));
+                    hold on
+                end
+                
+                dir = strcat(dir_base_res,num2str(length(ps)));
+                file_name = strcat(dir,'/',method,'Exp',num2str(j),'Ntrials',...
+                    num2str(i),'BioNoise',num2str(snr_bio),'.mat');
+                load(file_name)
+                figure(recfig)
+                subplot(3,1,1)
+                nip_reconstruction3d(model.cortex,sqrt(sum(J_rec.^2,2)),[]);
+                hold on;
+                scatter3(model.cortex.vc(actidx,1), ...
+                    model.cortex.vc(actidx,2),model.cortex.vc(actidx,3),'ok','filled');
+                subplot(3,1,2)                
+                plot(model.t,y);
+                subplot(3,1,3)   
+                cla;
+                fullidx = (actidx-1)*3 +1;
+                for kk = 1:length(fullidx)
+                    plot(model.t,J_rec(fullidx(kk):fullidx(kk) + 2,:));
+                    hold on
+                end
                 
             end
         end
