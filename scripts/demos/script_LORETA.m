@@ -7,10 +7,10 @@ nip_init();
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Cargar datos(lead field, mesh del cerebro etc...
-load(strcat('../../data/montreal_lf_coarse.mat'))
+load(strcat('data/sa_montreal.mat'))
 
-cfg.L = L;
-cfg.cortex = cortex;
+cfg.L = nip_translf(sa.V_cortex_coarse);
+cfg.cortex = sa.cortex_coarse;
 cfg.fs = 200; % Frecuencia de muestreo para la simulacion
 cfg.t = 0:1/cfg.fs:1; % Vector de tiempo
 
@@ -27,7 +27,7 @@ act = sin(2*pi*10*model.t); % Actividad a simular
 
 % Simular actividad "act" en el dipolo más cercano a las coordenadas [30
 % -20 30]
-[J, ~] = nip_simulate_activity(model.cortex.vertices,[30 -20 30], act, randn(1,3), model.t);
+[J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
 
 % Hay dispersion de la actividad, entre mas grande el numero, mas dispersa es la actividad    
 fuzzy = nip_fuzzy_sources(model.cortex,0.1);
@@ -39,6 +39,16 @@ end
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
+
+% Normalizacion usando la matrix de sLORETA (optional)
+% Lsloreta = nip_translf(model.L);
+% Winv = full(sloreta_invweights(Lsloreta));
+% Winv = cat(3,Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3));
+% for i = 1:3
+%     Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
+% end
+% model.L = nip_translf(Lsloreta);
+
 
 % Anadir ruido
 snr = 10;
@@ -57,6 +67,12 @@ Q = eye(model.Nd); %Matriz de covarianza apriori
 % Q = diag(sqrt(sum(J_est,2)));
 % [J_est, extras] = nip_loreta(model.y, model.L, Q);
 
+% Aplicar desnormalizacion
+% J_est = nip_trans_solution(J_est);
+% for i = 1:3
+%     J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
+% end
+% J_est = nip_trans_solution(J_est);
 
 %%%%%%%%%%%%%%%%%
 % Visualizacion %

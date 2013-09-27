@@ -45,7 +45,7 @@ phase_shift{2} = [0.375 0.75 1.25];
 phase_shift{3} = [0.250 0.500 0.750 1.000 1.250];
 
 % Number of Experiments
-n_exp = 50;
+n_exp = 10;
 
 options.Ntrials = Ntrials;
 options.snr_bio = snr_bio;
@@ -53,12 +53,9 @@ options.n_exp = n_exp;
 options.Nspurious = Nspurious;
 options.snr_meas = snr_meas;
 
-sched = findResource('scheduler', 'configuration', 'local');
-% sched = parcluster();
-job = createJob(sched);
 dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
-dir_base_res = '/mnt/data/Datasets/results/montreal_sampleall_false/';
-method = 'LOR';
+dir_base_res = '/mnt/data/results/montreal_sampleall_false/';
+method = 'S+T';
 
 simfig = figure('Units','normalized','position',[0.1 0.2 0.14 0.4]);
 recfig = figure('Units','normalized','position',[0.3 0.2 0.14 0.4]);
@@ -67,6 +64,8 @@ for l = 1:numel(phase_shift)
     for k = 1:length(snr_bio)
         for j = 1:n_exp            
             for i = Ntrials
+                dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
+                dir_base_res = '/mnt/data/results/montreal_sampleall_false/';
                 dir = strcat(dir_base,num2str(length(ps)));
                 file_name = strcat(dir,'/Exp',num2str(j),'Ntrials',...
                     num2str(i),'BioNoise',num2str(snr_bio(k)),'.mat');
@@ -94,6 +93,7 @@ for l = 1:numel(phase_shift)
                 figure(recfig)
                 subplot(3,1,1)
                 nip_reconstruction3d(model.cortex,sqrt(sum(J_rec.^2,2)),[]);
+                title(method)
                 hold on;
                 scatter3(model.cortex.vc(actidx,1), ...
                     model.cortex.vc(actidx,2),model.cortex.vc(actidx,3),'ok','filled');
