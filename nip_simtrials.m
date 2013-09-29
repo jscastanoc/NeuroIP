@@ -1,9 +1,9 @@
-function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio, options)
+function [y, Jclean, actidx] = nip_simtrials(L, dip_pos, CleanBrain, t, Nsp, Ntrials,snr_meas, snr_bio, options)
 % [y, Jclean, actidx] = nip_simtrials(L, dip_pos, act, t, Nsp, Ntrials,snr_meas, snr_bio)
 %  Input:
 %         L -> Ncx3Nd. Lead Field matrix
 %         dip_pos -> Ndx3. Coordinates of each dipole
-%         act -> NactxNt. Time courses of the active dipoles.
+%         CleanBrain -> NdxNt. Brain activity without noise
 %         t -> 1xNt. Time vector (in secs).
 %         Nsp -> scalar. Number of Spurious/noise sources.
 %         Ntrials -> scalar. Number of trials to simulate.
@@ -26,11 +26,11 @@ rng('shuffle')
 [Nc Nd] = size(L);
 Nt = length(t);
 
-Nact = size(act,1);
-dir = randn(Nact,3);
-[Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t,options);
 
-
+% [Jclean, actidx] = nip_simulate_activity(dip_pos, Nact, act, dir, t,options);
+Jclean = CleanBrain.Jclean;
+actidx = CleanBrain.actidx;
+Nact = length(actidx);
 mask = ones(size(L,2),Nt);
 for i =1:Nact
    mask(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
@@ -49,7 +49,7 @@ for i = 1:Nact
     J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
 end
 
-sp_scale = norm(Jclean)/(10^(snr_bio/20)*norm(J));
+sp_scale = norm(full(Jclean))/(10^(snr_bio/20)*norm(J));
 for n = 1:Ntrials
     if mod(n,10) == 0   
         msg = sprintf('Trial # %d',n);

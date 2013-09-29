@@ -5,8 +5,7 @@
 % jscastanoc@gmail.com  %
 % 19 Sep 2013           %
 %%%%%%%%%%%%%%%%%%%%%%%%%
-close all; clc; clear all
-
+close all; clc; clear
 warning off
 nip_init();
 
@@ -36,7 +35,7 @@ clear L sa;
 Ntrials = [5 20 50 100 250]; % Number of trials to simulate (results are averaged across trials)
 snr_meas = 0; % Signal to noise ratio at the sensor level
 snr_bio = [5]; % Signal to noise ratio at source level
-Nspurious = 200; % Number of source with spurious activity in each simulation
+Nspurious = 1000; % Number of source with spurious activity in each simulation
 
 
 % Mean of the time shift of the wavelets (1 3 and 5 active sources)
@@ -59,6 +58,7 @@ job = createJob(sched);
 dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
 for l = 1:numel(phase_shift)
     options.phase_shift = phase_shift{l};
+%     parallel_core(model, dir_base, options);
     tasks{l} = createTask(job, @parallel_core, 0, {model, dir_base, options});        
 end
 submit(job);
