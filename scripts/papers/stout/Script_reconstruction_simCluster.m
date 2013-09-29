@@ -38,7 +38,7 @@ cfg.fs = 120; % Sample frequency (Hz)
 cfg.t = 0:1/cfg.fs:1.5; % Time vector (seconds)
 model = nip_create_model(cfg);
 clear L sa;
-
+Nd = size(model.cortex.vc,1);
 
 Ntrials = [5 20 50 100 250];
 act_sources = [1 3 5];
@@ -55,13 +55,17 @@ snr = [];
 
 n_exp = 1;
 
+distmat = graphrbf(model.cortex);
 
 jobs_c = 1;
 methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
 % methods = {'S-FLEX'};
 dir_base = '/home/jscastanoc/simulated/montreal_sampleall_false/';
 dir_results = '/home/jscastanoc/results/montreal_sampleall_false/';
+dir_error = '/mnt/data/error/montreal_sampleall_false/';
+
 for c_meth = 1:numel(methods)
+    method = methods{c_meth};
     for j = 1:n_exp
         cur_jobs = [];
         copy_res = {};
@@ -73,8 +77,8 @@ for c_meth = 1:numel(methods)
                 load(file_name);
                 model.y = y;
                 
-                jobs(jobs_c) = mgsub({'J_rec', 'time'},'solvers_ip', ...
-                    {model , methods{c_meth}}, 'qsub_opts', '-l h_vmem=8G');
+                jobs(jobs_c) = mgsub({'J_rec', 'time', 'er'},'solvers_ip', ...
+                    {model , methods{c_meth}, Jclean}, 'qsub_opts', '-l h_vmem=8G');
                 cur_jobs = [cur_jobs jobs(jobs_c)];
                 jobs_c = jobs_c + 1;
                 
@@ -82,6 +86,12 @@ for c_meth = 1:numel(methods)
                 file_name = strcat(dir,'/',methods{c_meth},'Exp',num2str(j),'Ntrials',...
                     num2str(i),'BioNoise',num2str(snr_bio),'.mat');
                 copy_res{end+1} = file_name;
+                
+                dir = strcat(dir_error,num2str(act_sources(l)));
+                file_name = strcat(dir,'/',method,'Exp',num2str(j),'Ntrials',...
+                    num2str(i),'BioNoise',num2str(snr_bio),'.mat');
+                error_file{end+1}= file_name;
+                
             end
         end
         mgwait(cur_jobs);
@@ -90,12 +100,16 @@ for c_meth = 1:numel(methods)
         aux = 1;
         for cc_res = cur_jobs
             or = strcat('/home/jscastanoc/svn_test/matgrid/jobs/',num2str(cc_res),'/mgjob_results.mat');
-            dest = copy_res{aux};
             try
                 load(or);
                 J_rec = mgjob.results{1};
                 time = mgjob.results{2};
+                
+                dest = copy_res{aux};
                 save(dest,'J_rec','time','dir_base');
+                
+                dest = error_file{aux};
+                save(dest,'er')
                 delete(or);
             catch
                 err_var = true;

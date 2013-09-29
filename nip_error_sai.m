@@ -38,32 +38,22 @@ function [sai, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
 % snickers).
 Nd = num2str(size(cortex.vertices,1));
 file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
-A    = triangulation2adjacency(cortex.faces);
-if exist(file_name,'file')
-    load(file_name)
-else    
-    D   = compute_distance_graph(A);
-    save(file_name,'D');
-end
 
 Nd = size(cortex.vertices,1);
 
-% Calculate mean distance between neighboring dipoles.
-n = 0;
-meanDist = 0;
-for i = 1:Nd
-    for j = find(A(:,i))'
-        meanDist = meanDist + norm(cortex.vertices(i,:)-cortex.vertices(j,:));
-        n = n + 1;
-    end
+if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
+    cortex.vc = cortex.vertices;
+    cortex.vertices = [];
+    cortex.tri = cortex.faces;
+    cortex.faces = [];
 end
-meanDist = meanDist/n;
-D = D*meanDist;
+
+D = graphrbf(cortex);
 
 GeoD = D;
 
 % Create spatial "masks"
-sp_tol = 0.5; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
+sp_tol = 4; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
 idx = find(D > sp_tol);
 D(idx) = 0;
 idx = find(D);
