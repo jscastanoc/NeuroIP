@@ -1,4 +1,4 @@
-function [J_rec time err] = core_matgrid_test(model,method, Jclean, actsources)
+function [J_rec time err] = core_matgrid_test(model,method, Jclean, actsources, actidx)
 
 % Width of the basis functions for S-FLEX and stout
 iter_basis = [1.5];
