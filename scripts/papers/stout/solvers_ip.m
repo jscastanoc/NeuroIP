@@ -1,4 +1,4 @@
-function [J_rec time err] = core_matgrid_test(model,method, Jclean, actsources, actidx)
+function [J_rec time er] = core_matgrid_test(model,method, Jclean, actsources, actidx)
 
 % Width of the basis functions for S-FLEX and stout
 iter_basis = [1.5];
@@ -60,6 +60,10 @@ end
 Nd = size(model.cortex.vc,1);
 distmat = graphrbf(model.cortex);
 
+y = model.y;
+L = model.L;
+cortex = model.cortex;
+clear model;
 sig1 = sqrt(sum(J_rec.^2,2));
 sig1 = sig1/norm(sig1);
 sig2 = sqrt(sum(Jclean.^2,2));
@@ -80,6 +84,7 @@ er(2) = mean(cormax);
 er(3) = mean(distact);
 er(4) = mean((1/cormax).*distact);
 er(5) = nip_error_tai(y,L,Jrecbckp);
+[er(6),~,~] = nip_error_sai(cortex, Jclean,J_rec,5);
 
 J_rec = sparse(J_rec);
 time = toc;

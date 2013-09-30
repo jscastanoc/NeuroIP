@@ -62,7 +62,10 @@ methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
 % methods = {'S-FLEX'};
 dir_base = '/home/jscastanoc/simulated/montreal_sampleall_false/';
 dir_results = '/home/jscastanoc/results/montreal_sampleall_false/';
-dir_error = '/mnt/data/error/montreal_sampleall_false/';
+dir_error = '/home/error/montreal_sampleall_false/';
+% dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
+% dir_results = '/mnt/data/results/montreal_sampleall_false/';
+% dir_error = '/mnt/data/error/montreal_sampleall_false/';
 
 for c_meth = 1:numel(methods)
     method = methods{c_meth};
@@ -83,6 +86,8 @@ for c_meth = 1:numel(methods)
                     {model , methods{c_meth}, Jclean, act_sources(l), actidx}, 'qsub_opts', '-l h_vmem=8G');
                 cur_jobs = [cur_jobs jobs(jobs_c)];
                 jobs_c = jobs_c + 1;
+                
+%                 [J_rec time er] = solvers_ip(model , methods{c_meth}, Jclean, act_sources(l), actidx);
                 
                 dir = strcat(dir_results,num2str(act_sources(l)));
                 file_name = strcat(dir,'/',methods{c_meth},'Exp',num2str(j),'Ntrials',...

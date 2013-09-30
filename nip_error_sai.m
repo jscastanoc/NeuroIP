@@ -1,5 +1,5 @@
 function [sai, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
-% [sai] = nip_error_sai(cortex, J_sim,J_rec, r)
+% [sai, Ms, Mr]  = nip_error_sai(cortex, J_sim,J_rec, r)
 %
 % Computes an spatial accuracy index to evaluate the spatial quality of an
 % inverse solution.
@@ -33,13 +33,7 @@ function [sai, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
 % 20 May 2013.
 
 
-% Search for a file with the precompute geodesic distances. If not found,
-% computes them and saves them in a file (This WILL take a while, grab a
-% snickers).
-Nd = num2str(size(cortex.vertices,1));
-file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
-
-Nd = size(cortex.vertices,1);
+Nt = size(J_sim,2);
 
 if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
     cortex.vc = cortex.vertices;
@@ -47,6 +41,10 @@ if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
     cortex.tri = cortex.faces;
     cortex.faces = [];
 end
+
+Nd = size(cortex.vc,1);
+file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
+
 
 D = graphrbf(cortex);
 
@@ -61,10 +59,11 @@ D(idx) = 1;
 D = D+speye(Nd);
 
 % Average activity and Normalize
-Es = mean(J_sim.^2,2);
+
+Es = nip_energy(mean(J_sim.^2,2));
 Es = Es-min(Es);
 Es = Es/max(Es);
-Er = mean(J_rec.^2,2);
+Er = nip_energy(mean(J_rec.^2,2));
 Er = Er-min(Er);
 Er = Er/max(Er);
 
