@@ -70,6 +70,7 @@ for c_meth = 1:numel(methods)
         cur_jobs = [];
         copy_res = {};
         error_file = {};
+        
         for l = 1:length(act_sources)
             for i = Ntrials
                 dir = strcat(dir_base,num2str(act_sources(l)),'/');
@@ -79,7 +80,7 @@ for c_meth = 1:numel(methods)
                 model.y = y;
                 
                 jobs(jobs_c) = mgsub({'J_rec', 'time', 'er'},'solvers_ip', ...
-                    {model , methods{c_meth}, Jclean}, 'qsub_opts', '-l h_vmem=8G');
+                    {model , methods{c_meth}, Jclean, act_sources(l)}, 'qsub_opts', '-l h_vmem=8G');
                 cur_jobs = [cur_jobs jobs(jobs_c)];
                 jobs_c = jobs_c + 1;
                 
