@@ -68,7 +68,7 @@ sig1 = sqrt(sum(J_rec.^2,2));
 sig1 = sig1/norm(sig1);
 sig2 = sqrt(sum(Jclean.^2,2));
 sig2 = sig2/norm(sig2);
-er(1) = nip_emd(sig1,sig2,distmat);
+% er(1) = nip_emd(sig1,sig2,distmat);
 Jrecbckp = J_rec;
 J_rec = J_rec/max(abs(J_rec(:)));
 Jclean = Jclean/max(abs(Jclean(:)));
@@ -82,7 +82,7 @@ for iact = 1:actsources
 end
 er(2) = mean(cormax);
 er(3) = mean(distact);
-er(4) = mean((1/cormax).*distact);
+er(4) = mean((1./cormax).*distact);
 er(5) = nip_error_tai(y,L,Jrecbckp);
 [er(6),~,~] = nip_error_sai(cortex, Jclean,J_rec,5);
 

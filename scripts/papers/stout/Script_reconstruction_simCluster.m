@@ -41,7 +41,8 @@ clear L sa;
 Nd = size(model.cortex.vc,1);
 
 Ntrials = [5 20 50 100 250];
-act_sources = [1 3 5];
+% act_sources = [1 3 5];
+act_sources = [5];
 % Ntrials = [210];
 snr_meas = 0;
 snr_bio = 5;
@@ -62,14 +63,14 @@ methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
 % methods = {'S-FLEX'};
 dir_base = '/home/jscastanoc/simulated/montreal_sampleall_false/';
 dir_results = '/home/jscastanoc/results/montreal_sampleall_false/';
-dir_error = '/home/error/montreal_sampleall_false/';
-% dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
-% dir_results = '/mnt/data/results/montreal_sampleall_false/';
-% dir_error = '/mnt/data/error/montreal_sampleall_false/';
+dir_error = '/home/jscastanoc/error/montreal_sampleall_false/';
+dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
+dir_results = '/mnt/data/results/montreal_sampleall_false/';
+dir_error = '/mnt/data/error/montreal_sampleall_false/';
 
-for c_meth = 1:numel(methods)
-    method = methods{c_meth};
-    for j = 1:n_exp
+for j = 1:n_exp
+    for c_meth = 1:numel(methods)
+        method = methods{c_meth};
         cur_jobs = [];
         copy_res = {};
         error_file = {};
