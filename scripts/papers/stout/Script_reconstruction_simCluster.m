@@ -69,6 +69,7 @@ for c_meth = 1:numel(methods)
     for j = 1:n_exp
         cur_jobs = [];
         copy_res = {};
+        error_file = {};
         for l = 1:length(act_sources)
             for i = Ntrials
                 dir = strcat(dir_base,num2str(act_sources(l)),'/');
