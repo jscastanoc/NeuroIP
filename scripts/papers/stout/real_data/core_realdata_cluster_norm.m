@@ -69,12 +69,11 @@ end
 % Depth compensation
 Lsloreta = nip_translf(model.L);
 Winv = full(sloreta_invweights(Lsloreta));
-Winv = cat(3,Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3));
+Winv = cat(3,Winv(1:end/3,1:end/3),Winv(end/3 +1:2*end/3,end/3 +1:2*end/3),Winv(2*end/3 +1 :end,2*end/3 +1:end));
 for i = 1:3
     Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
 end
 model.L = nip_translf(Lsloreta);
-
 
 switch methods
     case 'LOR'
