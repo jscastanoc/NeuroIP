@@ -56,9 +56,13 @@ end
 Nd = length(data);
 
 % Compute the magnitude of the activity in each dipole
+if Nd/3 == size(cortex.vertices,1)
+    data_m = sqrt(data.^2);
+else
 data_m = zeros(Nd/3,1);
 for i = 1:Nd/3
     data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
+end
 end
 
 if ~isfield(varargin{1},'crange');
@@ -67,7 +71,7 @@ end
 [crange] = options.crange;
 
 data_m =abs(data_m)- crange(1);
-data_m = data_m/crange(2);
+data_m = data_m/max(data_m);
 
 
 insig_idx =  find(abs(data_m) < max(abs(data_m))*options.thres);
