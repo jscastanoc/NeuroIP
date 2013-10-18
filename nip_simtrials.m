@@ -33,7 +33,7 @@ actidx = CleanBrain.actidx;
 Nact = length(actidx);
 mask = ones(size(L,2),Nt);
 for i =1:Nact
-   mask(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
+   mask((actidx(i)-1)*3+1:(actidx(i)-1)*3+3,:) = zeros(3,Nt);
 end
 
 J = zeros(Nd,Nt);
@@ -46,7 +46,7 @@ sp_act = mkpinknoise(Nt,Nsp)';
 options.sample_all = true;
 J = nip_simulate_activity(dip_pos,Nsp, sp_act, dir, t,options);
 for i = 1:Nact
-    J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
+    J((actidx(i)-1)*3+1:(actidx(i)-1)*3+3,:) = zeros(3,Nt);
 end
 
 sp_scale = norm(full(Jclean))/(10^(snr_bio/20)*norm(J));
@@ -69,7 +69,7 @@ for n = 1:Ntrials
     dir = randn(Nsp,3);
     J = nip_simulate_activity(dip_pos,Nsp, sp_act, dir, t,options);
     for i = 1:Nact
-        J(actidx(i):actidx(i)+2,:) = zeros(3,Nt);
+        J((actidx(i)-1)*3+1:(actidx(i)-1)*3+3,:) = zeros(3,Nt);
     end
     J = sp_scale*J + Jclean;
     

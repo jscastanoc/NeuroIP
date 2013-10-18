@@ -1,15 +1,16 @@
-function [J_rec time er] = core_matgrid_test(model,method, Jclean, actsources, actidx)
+function [J_rec time er] = solvers_ip(model,method, Jclean, actsources, actidx)
 
+nip_init();
 % Width of the basis functions for S-FLEX and stout
-iter_basis = [1.5];
+iter_basis = [1];
 
-if sum(ismember(method,{'S+T','S-FLEX'}))
+if sum(ismember(method,{'STOUT','S-FLEX'}))
     nbasis = size(model.L,2)/3;
     basis = [];
     n = 1;
     group = [];
     for i = iter_basis
-        fuzzy = nip_fuzzy_sources(model.cortex,i);
+        fuzzy = nip_fuzzy_sources(model.cortex,i,struct('database','montreal','save',true));
         basisn = fuzzy(:,randi([1,model.Nd/3],nbasis,1));
         basisn = basisn/norm(basisn(:),1);
         basis = [basis basisn];
@@ -18,47 +19,28 @@ if sum(ismember(method,{'S+T','S-FLEX'}))
     end
 end
 
+if sum(ismember(method,{'STOUT','TF-MxNE'}))
+%     ltfatstart;
+end
+
 switch method
     case 'LOR'
-        %         [Laplacian] = nip_neighbor_mat(model.cortex);
-        %         Q = inv(Laplacian*Laplacian');
         Q = speye(model.Nd);
-        [J_rec,~] = nip_loreta(model.y,model.L,Q);
-        
+        [J_rec,~] = nip_loreta(model.y,model.L,Q);        
     case 'S-FLEX'
-        index = (1:3:model.Nd);
-        for i = 0:2
-            L(:,index+i) = model.L(:,index+i)*basis;
-        end
-        [xx,~] = sflex_cortical_dal(model.y,L,[],struct('eps',0.25,'B',eye(model.Nd)));
-        J_rec = permute(xx,[1 3,2]);
-        index = (1:3:model.Nd);
-        for i = 0:2
-            J_rec(index+i,:) = basis*J_rec(index+i,:);
-        end
-        
+       	[J_rec,~]  = nip_sflex(model.y,model.L,basis,5e-5);
     case 'TF-MxNE'
-        options.iter = 50;
-        options.spatial_reg = 0.9;
-        options.temp_reg = 0.15;
-        options.tol = 1e-2;
-        options.a = 10;
-        options.M = 200;
-        [J_rec,~] = nip_tfmxne_port(model.y,model.L,options);
-        
-    case 'S+T'
-        options.iter = 50;
-        options.spatial_reg = 0.9;
-        options.temp_reg = 0.15;
-        options.tol = 1e-2;
-        options.a = 10;
-        options.M = 200;
-        [J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis,options);
+        [J_rec,~] = nip_tfmxne_port(model.y,model.L,[]);        
+    case 'STOUT'
+        [J_rec,~] = nip_stout(model.y,model.L,basis,[]);
     otherwise
-        error(strcat('Nah! ',method,' is not available'))
+        error(strcat('Ups! ',method,' is not available'))
 end
-Nd = size(model.cortex.vc,1);
+Nd= size(model.cortex.vc,1);
 distmat = graphrbf(model.cortex);
+er = [];
+time = [];
+return
 
 y = model.y;
 L = model.L;
@@ -68,7 +50,7 @@ sig1 = sqrt(sum(J_rec.^2,2));
 sig1 = sig1/norm(sig1);
 sig2 = sqrt(sum(Jclean.^2,2));
 sig2 = sig2/norm(sig2);
-% er(1) = nip_emd(sig1,sig2,distmat);
+er(1) = nip_emd(sig1,sig2,distmat);
 Jrecbckp = J_rec;
 J_rec = J_rec/max(abs(J_rec(:)));
 Jclean = Jclean/max(abs(Jclean(:)));

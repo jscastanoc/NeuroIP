@@ -10,8 +10,7 @@ function h = nip_reconstruction3D(cortex, data, varargin)
 %       options -> varargin Different options for the plot:
 %               .view -> 1x2. Vector containing azimut and elevation of the
 %                   camera (same as matlab's view fuction).
-%               .colormap -> string. colormap to be use in the
-%                   plot. Only 'autumn' and 'jet' supported.
+%               .colormap -> 
 %               .thres -> Scalar. Minimum Percentage of energy to display
 %                   e.g. if 0.05 then only the dipoles with atleast 5% energy
 %                   of the most active dipole are plotted with the colormap,
@@ -33,7 +32,7 @@ if ~isfield(varargin{1},'view');
 end
     
 if ~isfield(varargin{1},'colormap'); 
-    options.colormap = 'jet'; 
+    options.colormap = jet(256); 
 end
 
 if ~isfield(varargin{1},'thres'); 
@@ -56,36 +55,42 @@ end
 Nd = length(data);
 
 % Compute the magnitude of the activity in each dipole
-if Nd/3 == size(cortex.vertices,1)
-    data_m = sqrt(data.^2);
+if Nd == size(cortex.vertices,1)
+%     data_m = sqrt(data.^2);
+    data_m = data;
 else
 data_m = zeros(Nd/3,1);
 for i = 1:Nd/3
     data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
 end
 end
-
-if ~isfield(varargin{1},'crange');
+if ~isfield(varargin{1},'crange')
     options.crange = [min(data_m(:)),max(data_m(:))];
 end
+
+
 [crange] = options.crange;
 
-data_m =abs(data_m)- crange(1);
-data_m = data_m/max(data_m);
+idx = find(data_m < crange(1));
+data_m(idx) = crange(1);
+idx = find(data_m > crange(2));
+data_m(idx) = crange(2);
 
+% if sum(find(data_m <0))
+%     data_m = 0.5*data_m./max(abs(data_m));
+%     data_m = data_m+0.5;
+% end
 
+data_m = data_m./max(abs(data_m));
 insig_idx =  find(abs(data_m) < max(abs(data_m))*options.thres);
 sig_idx =  find(abs(data_m) >= max(abs(data_m))*options.thres);
 
-nc=256;
-switch options.colormap
-    case 'autumn'   
-        vc= autumn(nc);
-    case 'jet'
-        vc= jet(nc);
-end
+vc = colormap(options.colormap);
+nc = length(vc);
+
 datac = floor(data_m*(nc-1))+1;
 datac(find(datac > (nc-1))) = nc-1;
+datac(find(datac < 1)) = 1;
 
 try
     vca = vc(datac,:);
@@ -104,7 +109,7 @@ colormap(options.colormap)
 view(options.view);
 
 if ~noactdip
-    caxis([min(data(sig_idx))-1e-5 max(data(sig_idx))+1e-5]) 
+    caxis([crange(1)-1e-5 crange(2)+1e-5]) 
 end
 axis equal;
 axis off;

@@ -41,13 +41,13 @@ end
 clean_y = model.L*J;
 
 % Normalizacion usando la matrix de sLORETA (optional)
-% Lsloreta = nip_translf(model.L);
-% Winv = full(sloreta_invweights(Lsloreta));
-% Winv = cat(3,Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3),Winv(1:end/3,1:end/3));
-% for i = 1:3
-%     Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
-% end
-% model.L = nip_translf(Lsloreta);
+Lsloreta = nip_translf(model.L);
+Winv = full(sloreta_invweights(Lsloreta));
+Winv = cat(3,Winv(1:end/3,1:end/3),Winv(end/3 +1:2*end/3,end/3 +1:2*end/3),Winv(2*end/3 +1 :end,2*end/3 +1:end));
+for i = 1:3
+    Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
+end
+model.L = nip_translf(Lsloreta);
 
 
 % Anadir ruido
@@ -68,11 +68,11 @@ Q = eye(model.Nd); %Matriz de covarianza apriori
 % [J_est, extras] = nip_loreta(model.y, model.L, Q);
 
 % Aplicar desnormalizacion
-% J_est = nip_trans_solution(J_est);
-% for i = 1:3
-%     J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
-% end
-% J_est = nip_trans_solution(J_est);
+J_est = nip_trans_solution(J_est);
+for i = 1:3
+    J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
+end
+J_est = nip_trans_solution(J_est);
 
 %%%%%%%%%%%%%%%%%
 % Visualizacion %

@@ -1,5 +1,106 @@
 function savefig(fname,varargin)
-    
+% Usage: savefig(filename, fighdl, options)
+%
+% Saves a pdf, eps, png, jpeg, and/or tiff of the contents of the fighandle's (or current) figure.
+% It saves an eps of the figure and the uses Ghostscript to convert to the other formats.
+% The result is a cropped, clean picture. There are options for using rgb or cmyk colours,
+% or grayscale. You can also choose the resolution.
+%
+% The advantage of savefig is that there is very little empty space around the figure in the
+% resulting files, you can export to more than one format at once, and Ghostscript generates
+% trouble-free files.
+%
+% If you find any errors, please let me know! (peder at axensten dot se)
+%
+% filename: File name without suffix.
+%
+% fighdl:  (default: gcf) Integer handle to figure.
+%
+% options: (default: '-r300', '-lossless', '-rgb') You can define your own
+%          defaults in a global variable savefig_defaults, if you want to, i.e.
+%          savefig_defaults= {'-r200','-gray'};.
+% 'eps':   Output in Encapsulated Post Script (no preview yet).
+% 'pdf':   Output in (Adobe) Portable Document Format.
+% 'png':   Output in Portable Network Graphics.
+% 'jpeg':  Output in Joint Photographic Experts Group format.
+% 'tiff':  Output in Tagged Image File Format (no compression: huge files!).
+% '-rgb':  Output in rgb colours.
+% '-cmyk': Output in cmyk colours (not yet 'png' or 'jpeg' -- '-rgb' is used).
+% '-gray': Output in grayscale (not yet 'eps' -- '-rgb' is used).
+% '-fonts':  Include fonts in eps or pdf. Includes only the subset needed.
+% '-lossless':  Use lossless compression, works on most formats. same as '-c0', below.
+% '-c<float>':  Set compression for non-indexed bitmaps in PDFs -
+%               0: lossless; 0.1: high quality; 0.5: medium; 1: high compression.
+% '-r<integer>':  Set resolution.
+% '-crop': Removes points and line segments outside the viewing area -- permanently.
+%          Only use this on figures where many points and/or line segments are outside
+%          the area zoomed in to. This option will result in smaller vector files (has no
+%          effect on pixel files).
+% '-dbg':  Displays gs command line(s).
+%
+% EXAMPLE:
+% savefig('nicefig', 'pdf', 'jpeg', '-cmyk', '-c0.1', '-r250');
+% Saves the current figure to nicefig.pdf and nicefig.png, both in cmyk and at 250 dpi,
+%          with high quality lossy compression.
+%
+% REQUIREMENT: Ghostscript. Version 8.57 works, probably older versions too, but '-dEPSCrop'
+%          must be supported. I think version 7.32 or newer is ok.
+%
+% HISTORY:
+% Version 1.0, 2006-04-20.
+% Version 1.1, 2006-04-27:
+% - No 'epstopdf' stuff anymore! Using '-dEPSCrop' option in gs instead!
+% Version 1.2, 2006-05-02:
+% - Added a '-dbg' option (see options, above).
+% - Now looks for a global variable 'savefig_defaults' (see options, above).
+% - More detailed Ghostscript options (user will not really notice).
+% - Warns when there is no device for a file-type/color-model combination.
+% Version 1.3, 2006-06-06:
+% - Added a check to see if there actually is a figure handle.
+% - Now works in Matlab 6.5.1 (R13SP1) (maybe in 6.5 too).
+% - Now compatible with Ghostscript 8.54, released 2006-06-01.
+% Version 1.4, 2006-07-20:
+% - Added an option '-soft' that enables anti-aliasing on pixel graphics (on by default).
+% - Added an option '-hard' that don't do anti-aliasing on pixel graphics.
+% Version 1.5, 2006-07-27:
+% - Fixed a bug when calling with a figure handle argument.
+% Version 1.6, 2006-07-28:
+% - Added a crop option, see above.
+% Version 1.7, 2007-03-31:
+% - Fixed bug: calling print with invalid renderer value '-none'.
+% - Removed GhostScript argument '-dUseCIEColor' as it sometimes discoloured things.
+% Version 1.8, 2008-01-03:
+% - Added MacIntel: 'MACI'.
+% - Added 64bit PC (I think, can't test it myself).
+% - Added option '-nointerpolate' (use it to prevent blurring of pixelated).
+% - Removed '-hard' and '-soft'. Use '-nointerpolate' for '-hard', default for '-soft'.
+% - Fixed the gs 8.57 warning on UseCIEColor (it's now set).
+% - Added '-gray' for pdf, but gs 8.56 or newer is needed.
+% - Added '-gray' and '-cmyk' for eps, but you a fairly recent gs might be needed.
+% Version 1.9, 2008-07-27:
+% - Added lossless compression, see option '-lossless', above. Works on most formats.
+% - Added lossy compression, see options '-c<float>...', above. Works on 'pdf'.
+%   Thanks to Olly Woodford for idea and implementation!
+% - Removed option '-nointerpolate' -- now savefig never interpolates.
+% - Fixed a few small bugs and removed some mlint comments. 
+% Version 2.0, 2008-11-07:
+% - Added the possibility to include fonts into eps or pdf.
+%
+% TO DO: (Need Ghostscript support for these, so don't expect anything soon...)
+% - svg output.
+% - '-cmyk' for 'jpeg' and 'png'.
+% - Preview in 'eps'.
+% - Embedded vector fonts, not bitmap, in 'eps'.
+%
+% Copyright (C) Peder Axensten (peder at axensten dot se), 2006.
+
+% KEYWORDS:     eps, pdf, jpg, jpeg, png, tiff, eps2pdf, epstopdf, ghostscript
+%
+% INSPIRATION:  eps2pdf (5782), eps2xxx (6858)
+%
+% REQUIREMENTS: Works in Matlab 6.5.1 (R13SP1) (maybe in 6.5 too).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     savefigcore(fname,varargin{:});    
     
     if strncmp(system_dependent('getos'),'Linux',5)

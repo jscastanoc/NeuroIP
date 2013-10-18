@@ -1,5 +1,5 @@
 function [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
-% x = nip_iterreg(y, L, covmat, Laplacian, Np)
+% x = nip_iterreg(y, L, Q, Laplacian, Np)
 % Computes the iterative regularization algorithm to estimate brain
 % activity. See Documentation for further details.
 % Input:
@@ -37,7 +37,6 @@ eye_Nd = speye(Nd);
 eye_Nc = speye(Nc);
 
 WTW = inv(Q);
-Q = Q; % Source "noise" covariance
 
 % Sensor noise covariance
 if isempty(covmat_obs) || nargin <6

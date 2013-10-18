@@ -1,7 +1,6 @@
-function [J_rec extras] = nip_sflex_tfmxne(y,L,B,options)
-% function [J_rec extras] = nip_sflex_tfmxne(y,L,B,options)
-% TF-MxNE with spatial basis functions.
-%  Input:
+function [J_rec extras] = nip_stout(y,L,B,options)
+% function [J_rec extras] = nip_stout(y,L,B,options)
+% Input:
 %         y -> NcxNt. Matrix containing the data,
 %         L -> Ncx3Nd. Lead Field matrix
 %         B -> NdxNk. Spatial basis functions

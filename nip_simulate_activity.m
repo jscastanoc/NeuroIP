@@ -51,7 +51,9 @@ if isscalar(act_dip)
             act_dip = randsample(Nd,act_dip);
         else   % CAUTION!! this was only design for the montreal database
                 % You pick a point that's in the center of the brain and
-                % sampled only the dipoles that are farther from that point
+                % sample only the dipoles that are farther from that point
+                % This is done to make simulation only with superficial
+                % sources
             point = mean(dip_pos);
             point(3) = point(3) - point(3)*0.2;
             dists = dist([dip_pos; point]' );
