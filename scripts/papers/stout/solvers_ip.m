@@ -20,13 +20,10 @@ if sum(ismember(method,{'STOUT','S-FLEX'}))
 end
 
 if sum(ismember(method,{'STOUT','TF-MxNE'}))
-
     ltfatstart;
 end
 
 tic
-
-
 
 switch method
     case 'LOR'
@@ -45,9 +42,7 @@ Nd= size(model.cortex.vc,1);
 distmat = graphrbf(model.cortex);
 er = [];
 
-time = toc
-
-
+time = toc;
 
 y = model.y;
 L = model.L;
