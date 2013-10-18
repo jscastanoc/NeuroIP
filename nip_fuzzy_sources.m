@@ -1,4 +1,4 @@
-function aff = nip_fuzzy_sources(cortex, sigma, file_name)
+function aff = nip_fuzzy_sources(cortex, sigma, varargin)
 % aff = nip_fuzzy_sources(cortex, sigma)
 % This function returns a matrix that contains information about the
 % distance between points in a graph. It places a gaussian with variance = sigma
@@ -26,21 +26,31 @@ if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
     cortex.faces = [];
 end
 
-% Nd = num2str(size(cortex.vc,1));
-% A    = sparse(triangulation2adjacency(cortex.faces));
 
-% Search for a file with the precompute geodesic distances. If not found,
-% computes them and saves them in a file (This WILL take a while, grab a
-% snickers). NOT ANYMORE!
-% if nargin < 3
-%     file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
-% end
-% if exist(file_name,'file')
-%     load(file_name)
-% else
-%     D   = compute_distance_graph(A);
-%     save(file_name,'D');
-% end
+if isempty(varargin)
+    varargin{1} = [];
+end
+if ~isfield(varargin{1},'dataset')
+    varargin{1}.dataset = [];
+end
+if  ~isfield(varargin{1},'save')
+    varargin{1}.save = 0;
+end
 
-aff = graphrbf(cortex);
+
+if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
+    aff = graphrbf(cortex);
+else
+    filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'.mat');
+    if exist(filename)
+        load(filename);
+    else
+        aff = graphrbf(cortex);
+        if varargin{1}.save
+            save(filename, 'aff');
+        end
+    end
+    
+end
+
 aff = exp(-aff.^2/sigma^2);

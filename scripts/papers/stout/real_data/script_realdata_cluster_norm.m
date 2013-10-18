@@ -46,7 +46,7 @@ clear L sa model;
 startup_bbcicluster;
 
 dir = addpath(strcat(fileparts(which('script_realdata_cluster_norm'))));
-session_list = get_session_list(dir);
+session_list = get_session_list(pwd);
 
 stim_target = [31:36 81:86 111:116];
 stim_nontarget = [11:16 61:66 91:96];

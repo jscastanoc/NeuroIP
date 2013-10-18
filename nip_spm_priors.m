@@ -9,7 +9,7 @@ function h = nip_spm_priors(y,L,patches,Qe,type)
 %               the spatial pattern.
 %       Qe -> NcxNc. Covariance matrix at the sensor level.
 %       type -> string. Method used to find the hyperparameters:
-%                   'ARD' - 'GS' 
+%                   'ARD' - 'GS'
 % Output:
 %       h -> Npx1. Weights for each of the patches.
 %
@@ -19,43 +19,62 @@ function h = nip_spm_priors(y,L,patches,Qe,type)
 %				Vladimir Litvak - litvak.vladimir@gmail.com
 %        This function is a wrapper to some SPM utilities!
 %
-% Juan S. Castaño 
+% Juan S. Castaño
 % 9. May 2013
 
 
 YY = y*y';
-[Nd, Np] = size(patches);               
-
+[Nd, Np] = size(patches);
+Nc = size(L,1);
 Qp = {};
 LQpL = {};
-for i = 1:Np
-    Qp{end + 1}.q   = patches(:,i);
-    LQpL{end + 1}.q = L*patches(:,i);
-end
 
-QP = {};
-LQP = {};
-switch(type)    
+eyeNd = repmat(eye(Nd),[1,1,3]);
+
+Lnew = zeros(Nc,Nc);
+for i = 1:Np
+    if size(L,2)~= size(patches,1);
+        Ltemp = nip_translf(L);
+        for k = 1:3
+            for j = 1:3
+                if k==j
+                    Lnew(:,:) = Ltemp(:,:,j)*diag(patches(:,i))*Ltemp(:,:,j)';
+                    Q(:,1,j) = patches(:,i);
+                else
+                    Q(:,1,j) = 0.1*ones(Nd,1,1);
+                end                
+            end
+            LQpL{end+1}.q = Lnew;
+            Qp{end+1}.q = nip_trans_solution(Q);
+            Q = zeros(Nd,1,3);
+        end
+    else
+        Qp{end + 1}.q   = patches(:,i);
+        LQpL{end + 1}.q = L*diag(patches(:,i))*L';
+    end
+end
+Np = numel(Qp);
+switch(type)
     case {'GS'}
         % Greedy search over MSPs
         Np    = length(Qp);
-        Q     = patches;
-% 		for i = 1:Np
-% 			Q(:,i) = Qp{i}.q;
-% 		end
-%         Q = sparse(Q);
-		
+        Q = zeros(3*Nd,numel(Qp));
+        for i = 1:size(Q,2)
+            Q(:,i) = Qp{i}.q;
+        end
+        %         Q = sparse(Q);
+        
         % Multivariate Bayes (Here is performed the inversion)
         %------------------------------------------------------------------
         MVB   = spm_mvb(y,L,[],Q,Qe,16);
         
         % Accumulate empirical priors (New set of patches for the second inversion)
         %------------------------------------------------------------------
-		% MVB.cp provides the final weights of the hyperparameters
-%         Qcp           = Q*MVB.cp;
-%         QP{end + 1}   = sum(Qcp.*Q,2);
-%         LQP{end + 1}  = (L*Qcp)*Q';
-%         LQPL{end + 1} = LQP{end}*L';
+        % MVB.cp provides the final weights of the hyperparameters
+        %         Qcp           = Q*MVB.cp;
+        %         QP{end + 1}   = sum(Qcp.*Q,2);
+        %         LQP{end + 1}  = (L*Qcp)*Q';
+        %         LQPL{end + 1} = LQP{end}*L';
         h = diag(MVB.cp);
     case {'ARD'}
         % ReML - ARD (Here is performed the inversion)
@@ -64,20 +83,20 @@ switch(type)
         h = h(2:end);
         % Spatial priors (QP)
         %------------------------------------------------------------------
-		% h provides the final weights of the hyperparameters
-%         Ne    = length(Qe);
-%         Np    = length(Qp);
-%         hp    = h(Ne + (1:Np));
-% 		qp    = sparse(0);
-%         for i = 1:Np
-%             if hp(i) > max(hp)/128;
-%                 qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
-%             end
-%         end
-%         
-%         % Accumulate empirical priors (New set of patches for the second inversion)
-%         %------------------------------------------------------------------
-%         QP{end + 1}   = diag(qp);
-%         LQP{end + 1}  = L*qp;
-%         LQPL{end + 1} = LQP{end}*L';
+        % h provides the final weights of the hyperparameters
+        %         Ne    = length(Qe);
+        %         Np    = length(Qp);
+        %         hp    = h(Ne + (1:Np));
+        % 		qp    = sparse(0);
+        %         for i = 1:Np
+        %             if hp(i) > max(hp)/128;
+        %                 qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
+        %             end
+        %         end
+        %
+        %         % Accumulate empirical priors (New set of patches for the second inversion)
+        %         %------------------------------------------------------------------
+        %         QP{end + 1}   = diag(qp);
+        %         LQP{end + 1}  = L*qp;
+        %         LQPL{end + 1} = LQP{end}*L';
 end

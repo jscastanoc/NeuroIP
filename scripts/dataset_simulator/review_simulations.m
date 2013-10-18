@@ -56,7 +56,7 @@ options.snr_meas = snr_meas;
 sched = findResource('scheduler', 'configuration', 'local');
 % sched = parcluster();
 job = createJob(sched);
-dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
+dir_base = '/mnt/data/Master_Results/Datasets/simulated/montreal_sampleall_false/';
 figure('Units','normalized','position',[0.2 0.2 0.14 0.4]);
 for l = 1:numel(phase_shift)
     ps = phase_shift{l};
@@ -81,7 +81,6 @@ for l = 1:numel(phase_shift)
                     plot(model.t,Jclean(fullidx(kk):fullidx(kk) + 2,:));
                     hold on
                 end
-                
             end
         end
     end

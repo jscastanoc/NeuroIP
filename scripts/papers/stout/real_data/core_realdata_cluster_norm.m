@@ -13,9 +13,9 @@ nip_init();
 % Initialization and creation of the structures used in some functions
 % close all; clc; clear
 
-addpath('../../external/source_toolbox/haufe/')
-addpath('../../external/source_toolbox/nolte/')
-addpath('../../external/source_toolbox/simulations/')
+addpath('external/source_toolbox/haufe/')
+addpath('external/source_toolbox/nolte/')
+addpath('external/source_toolbox/simulations/')
 rng('default')
 rng('shuffle');
 
@@ -103,7 +103,7 @@ switch methods
     otherwise
         error(strcat('Nah! ',methods{i},' is not available'))
 end
-J_est = nip_trans_solution(J_est);
+J_est = nip_trans_solution(J_rec);
 for i = 1:3
     J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
 end

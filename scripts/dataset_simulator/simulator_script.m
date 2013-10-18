@@ -10,19 +10,7 @@ warning off
 nip_init();
 
 % Load leadfield data (leadfield, electrode labels etc..)
-load clab_example;
-load clab_10_10;
-clab = clab_10_10;
-% data_name = 'icbm152b_sym';
-data_name = 'montreal';
-
-
-% Prepare leadfield data.
-sa = prepare_sourceanalysis(clab, data_name);
-temp = sa.V_cortex_coarse;
-L = nip_translf(temp); % Leadfield matrix
-L = L(find(ismember(clab_example,clab)),:);
-clear temp
+load_montreal_1010;
 
 cfg.cortex = sa.cortex_coarse;
 cfg.L = L;
@@ -44,7 +32,7 @@ phase_shift{2} = [0.375 0.75 1.25];
 phase_shift{3} = [0.250 0.500 0.750 1.000 1.250];
 
 % Number of Experiments
-n_exp = 50;
+n_exp = 100;
 
 options.Ntrials = Ntrials;
 options.snr_bio = snr_bio;
@@ -55,7 +43,7 @@ options.snr_meas = snr_meas;
 sched = findResource('scheduler', 'configuration', 'local');
 % sched = parcluster();
 job = createJob(sched);
-dir_base = '/mnt/data/Datasets/simulated/montreal_sampleall_false/';
+dir_base = '/mnt/data/Master_Results/Datasets/simulated/montreal_sampleall_false/';
 for l = 1:numel(phase_shift)
     options.phase_shift = phase_shift{l};
 %     parallel_core(model, dir_base, options);
@@ -69,3 +57,5 @@ nonempty = ~cellfun(@isempty, errmsgs);
 celldisp(errmsgs(nonempty));
 results = getAllOutputArguments(job); 
 destroy(job);
+
+copyfile('*.m',dir_base);

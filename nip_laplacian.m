@@ -1,4 +1,4 @@
-function [Laplacian] = nip_neighbor_mat(cortex)
+function [Laplacian] = nip_laplacian(cortex)
 % [Laplacian, QG] = nip_neighbor_mat(cortex)
 % Computes the Laplacian matrix and the green function from the graph
 % laplacian.

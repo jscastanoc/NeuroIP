@@ -22,5 +22,6 @@ function status = nip_init()
     addpath(strcat(fileparts(which('nip_init')),'/external/source_toolbox/simulations/'));
     addpath(strcat(fileparts(which('nip_init')),'/external/bbci/toolbox/startup/'));    
     addpath(strcat(fileparts(which('nip_init')),'/external/ltfat/'));
+    addpath(strcat(fileparts(which('nip_init')),'/help_scripts/'));
     %     addpath(strcat(fileparts(which('nip_init')),'/external/prob'));
 end

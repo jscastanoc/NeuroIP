@@ -1,5 +1,5 @@
 function model = nip_create_model(cfg)
-% model = nip_create_model(cfg, type) 
+% model = nip_create_model(cfg) 
 
 model = cfg;
 
