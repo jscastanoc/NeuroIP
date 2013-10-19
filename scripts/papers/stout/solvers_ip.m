@@ -28,7 +28,7 @@ tic
 switch method
     case 'LOR'
         Q = speye(model.Nd);
-        [J_rec,~] = nip_loreta(model.y,model.L,Q);        
+        [J_rec,~] = nip_loreta(model.y,model.L,Q);  
     case 'S-FLEX'
        	[J_rec,~]  = nip_sflex(model.y,model.L,basis,5e-5);
     case 'TF-MxNE'
@@ -52,21 +52,25 @@ sig1 = sqrt(sum(J_rec.^2,2));
 sig1 = sig1/norm(sig1);
 sig2 = sqrt(sum(Jclean.^2,2));
 sig2 = sig2/norm(sig2);
-er(1) = nip_emd(sig1,sig2,distmat);
+% er(1) = nip_emd(sig1,sig2,distmat);
 Jrecbckp = J_rec;
 J_rec = J_rec/max(abs(J_rec(:)));
 Jclean = Jclean/max(abs(Jclean(:)));
-for iact = 1:actsources
-    idxs = ((actidx(iact)-1)*3:(actidx(iact)-1)*3+2)+1;
-    simact = repmat(Jclean(idxs,:),Nd,1);
-    corr = sum(J_rec.*simact,2);
-    corr = mean(reshape(corr,3,[]),1);
-    [cormax(iact), idx_act(iact)] = max(corr);
-    distact(iact) = distmat(idx_act(iact),actidx(iact));
+CR = corr([Jclean((actidx-1)*3+1:(actidx-1)*3+3,:);J_rec]');
+CR(find(abs(CR) > 0.999)) = 0;
+[val, idxs] = max(abs(CR(1:actsources*3,:)),[],2);
+er(2) = mean(val);
+
+distmax = 0;
+weighted_d = 0;
+for i = 1:actsources*3
+    hhdist = distmat(ceil(idxs(i)/3),actidx);
+    weighted_d = weighted_d +(1./hhdist).*val(i);
+    distmax = distmax + hhdist;
 end
-er(2) = mean(cormax);
-er(3) = mean(distact);
-er(4) = mean((1./cormax).*distact);
+
+er(3) = distmax/(actsources*3);
+er(4) = weighted_d/(actsources*3) ;
 er(5) = nip_error_tai(y,L,Jrecbckp);
 [er(6),~,~] = nip_error_sai(cortex, Jclean,J_rec,5);
 
