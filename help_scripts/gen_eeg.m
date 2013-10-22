@@ -9,7 +9,7 @@ phase_shift = [0.5 1] ;
 Nact = length(phase_shift);
 
 % Central frequency for the wavelets
-fc_wl = [7,10]; 
+fc_wl = [7 10]; 
 
 % Generate time series
 for i = 1:Nact
@@ -25,8 +25,9 @@ for i = 1:Nact
 end
 
 % Place the time series in dipoles lying on given coordinates
-[J, actidx] = nip_simulate_activity(model.cortex.vc,[30 -20 30;-30 20 30], source, randn(2,3), model.t);
-
+x = randn(2,3);
+% [J, actidx] = nip_simulate_activity(model.cortex.vc,[30 30 30], source, randn(2,3), model.t);
+[J, actidx] = nip_simulate_activity(model.cortex.vc,[30 30 30; 30 -30 30], source, x, model.t);
 % Apply a spatial low-pass filter to the activity so we get smoothed patch
 % of activity
 fuzzy = nip_fuzzy_sources(model.cortex,1,struct('dataset','montreal','save',true));
@@ -39,5 +40,5 @@ end
 clean_y = model.L*J;
 
 % Add measurement noise to the EEG
-snr = 0;
+snr = 10;
 model.y = nip_addnoise(clean_y, snr);

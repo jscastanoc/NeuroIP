@@ -16,7 +16,7 @@ cfg.cortex = sa.cortex_coarse;
 cfg.clab = clab;
 
 % Set time information
-cfg.fs = 150; % Sample rate (in Hz)
+cfg.fs = 120; % Sample rate (in Hz)
 cfg.t = 0:1/cfg.fs:1.5; % Time vector
 
 % model structure with Nd, Nc and Nt according to what we defined above

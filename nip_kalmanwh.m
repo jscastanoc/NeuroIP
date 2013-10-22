@@ -52,7 +52,16 @@ covSigmaMat = [sigma^2 0; 0 0];
 Jwth = Laplacian*Jwth;
 P = 10*ones(Nd,1);
 Pwth_ap = zeros([2,2,Nd]);
+eta = 0;
+etat = eta;
+fprintf('Computing kalman... \n');
+rev_line = '';
 for k = 3:Nt
+    tic
+    msg = sprintf('Iteration # %u of %u\nElapsed time for this iteration: %f \nTotal time: %f \n',k,Nt,eta,etat);
+    fprintf([rev_line, msg]);
+    rev_line = repmat(sprintf('\b'),1,length(msg));
+    
     R = zeros([Nc,Nc]);    
     LJwth = Laplacian*Jwth(:,k-1);
     for i = 1:Nd        
@@ -74,6 +83,8 @@ for k = 3:Nt
         aux = (eye_2 - G*Qv)*Pwth_ap(:,:,i);
         P(i) = aux(1,1);
     end
+    eta = toc;
+    etat = etat + eta;
 end
 x = inv(Laplacian)*Jwth;
 % extras.P = Not implemented;

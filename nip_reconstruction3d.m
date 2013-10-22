@@ -30,6 +30,10 @@ options = varargin{1};
 if ~isfield(varargin{1},'view'); 
     options.view = [0 0]; 
 end
+
+if ~isfield(varargin{1},'alpha'); 
+    options.alpha = []; 
+end
     
 if ~isfield(varargin{1},'colormap'); 
     options.colormap = jet(256); 
@@ -57,13 +61,14 @@ Nd = length(data);
 % Compute the magnitude of the activity in each dipole
 if Nd == size(cortex.vertices,1)
 %     data_m = sqrt(data.^2);
-    data_m = data;
+    data_m = data;    
 else
 data_m = zeros(Nd/3,1);
 for i = 1:Nd/3
     data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
 end
 end
+
 if ~isfield(varargin{1},'crange')
     options.crange = [min(data_m(:)),max(data_m(:))];
 end
@@ -71,10 +76,16 @@ end
 
 [crange] = options.crange;
 
+
+
 idx = find(data_m < crange(1));
 data_m(idx) = crange(1);
 idx = find(data_m > crange(2));
 data_m(idx) = crange(2);
+
+
+
+
 
 % if sum(find(data_m <0))
 %     data_m = 0.5*data_m./max(abs(data_m));
@@ -82,6 +93,11 @@ data_m(idx) = crange(2);
 % end
 
 data_m = data_m./max(abs(data_m));
+if ~isempty(find(data_m<0))
+   data_m = (data_m+1)/2;
+end
+
+
 insig_idx =  find(abs(data_m) < max(abs(data_m))*options.thres);
 sig_idx =  find(abs(data_m) >= max(abs(data_m))*options.thres);
 
@@ -104,6 +120,9 @@ end
 axes(options.axes)
 cla
 h = patch('Faces', cortex.faces, 'Vertices', cortex.vertices,'FaceVertexCData',vca,'FaceColor','interp');
+if ~isempty(options.alpha)
+    set(h,'FaceAlpha',options.alpha);
+end
 colorbar(options.colorbar)
 colormap(options.colormap)
 view(options.view);

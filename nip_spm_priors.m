@@ -45,7 +45,7 @@ for i = 1:Np
                 end                
             end
             LQpL{end+1}.q = Lnew;
-            Qp{end+1}.q = nip_trans_solution(Q);
+            Qp{end+1}.q = nip_translf(permute(Q,[2 1 3]))';
             Q = zeros(Nd,1,3);
         end
     else

@@ -25,6 +25,9 @@ options = varargin{1};
 if ~isfield(varargin{1},'figureid'); 
     options.figureid = figure; 
 end
+if ~isfield(varargin{1},'view'); 
+    options.view = [-90,0]; 
+end
 
 if isfield(cortex, 'vc') && isfield(cortex,'tri')
     cortex.vertices = cortex.vc;
@@ -79,10 +82,12 @@ for i= 1:length(t)
         set(h,'AmbientStrength',1,'DiffuseStrength',1.0,'SpecularColorReflectance',0.0)
         material dull;
         lighting phong;
+        view(options.view)
 %     else
 %         set(h,'FaceVertexCData',vca)
 %     end
     camlight headlight;
-    pause(0.01)
+    pause(0.05)
+%     i
 end
 end

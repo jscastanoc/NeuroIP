@@ -33,13 +33,12 @@ end
 const_offset = 1.5;
 axes(a_handle);
 offset = max(max(y));
-t = linspace(0,1,size(y,2));
 ytick_vector = zeros(size(y,1),1);
 
 % Introduce an offset to each channel so they don't get overlapped
 for i = 1:size(y,1)
     ytick_vector(i) = const_offset*offset*i;
-    plot(t,y(i,:) + ytick_vector(i));
+    plot(y(i,:) + ytick_vector(i));
     hold on
 end
 xlabel('Time (secs)');

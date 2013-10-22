@@ -46,7 +46,7 @@ Nd = size(cortex.vc,1);
 file_name = strcat(fileparts(which('nip_init')),'/data/','dist_mat',num2str(Nd),'.mat');
 
 
-D = graphrbf(cortex);
+D = nip_fuzzy_sources(cortex,[],struct('dataset','montreal','save',true,'calc','dist'));
 
 GeoD = D;
 

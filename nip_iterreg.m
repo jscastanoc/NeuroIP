@@ -95,7 +95,15 @@ Gamma_k = (1/gamma)*RTR_inv;
 wk = zeros(Np,1);
 % wk(1) = 0.9;
 w_par=[];
+fprintf('Computing kalman... \n');
+rev_line = '';
+eta = 0;
+etat = eta;
 for k = 3:Nt
+    tic
+    msg = sprintf('Iteration # %u of %u\nElapsed time for this iteration: %f \nTotal time: %f \n',k,Nt,eta,etat);
+    fprintf([rev_line, msg]);
+    rev_line = repmat(sprintf('\b'),1,length(msg));
     wk_1 = wk;
     %The parameters lambda and gamma could be updated online (in this
     %implementation we won't do that
@@ -114,6 +122,9 @@ for k = 3:Nt
         ((temp1/Sigma)*y(:,k) + f(x(:,k-1),x(:,k-2), wk));
     
     w_par(:,k)=wk;
+    
+    eta = toc;
+    etat = etat + eta;
 end
 extra.mpar = w_par;
 extra.regpar = [lambda gamma];

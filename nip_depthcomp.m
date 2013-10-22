@@ -18,6 +18,7 @@ function varargout = nip_depthcomp(L,varargin)
 if isempty(varargin);
     varargin{1} = [];
 end
+
 if ~isfield(varargin{1},'type')
     vararging{1}.type = 'Lnorm';
 end

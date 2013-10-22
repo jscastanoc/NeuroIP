@@ -37,20 +37,31 @@ if  ~isfield(varargin{1},'save')
     varargin{1}.save = 0;
 end
 
+if ~isfield(varargin{1},'calc')
+    varargin{1}.calc = 'aff';
+end
+
 
 if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
-    aff = graphrbf(cortex);
+    distmat = graphrbf(cortex);
 else
     filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'.mat');
     if exist(filename)
         load(filename);
     else
-        aff = graphrbf(cortex);
+        distmat = graphrbf(cortex);
         if varargin{1}.save
-            save(filename, 'aff');
+            save(filename, 'distmat');
         end
     end
     
 end
 
-aff = exp(-aff.^2/sigma^2);
+
+switch varargin{1}.calc
+    case 'aff'
+        aff = exp(-distmat.^2/sigma^2);
+    case 'dist'
+        aff = distmat;
+end
+    
