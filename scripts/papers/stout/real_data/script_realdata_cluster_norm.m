@@ -45,7 +45,6 @@ clear L sa model;
 
 startup_bbcicluster;
 
-dir = addpath(strcat(fileparts(which('script_realdata_cluster_norm'))));
 session_list = get_session_list(pwd);
 
 stim_target = [31:36 81:86 111:116];
@@ -57,28 +56,28 @@ Conditions = 2;
 
 jobs_c = 1;
 % methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
-methods = {'S+T'};
+methods = {'STOUT'};
 for c_meth = 1:numel(methods)
     
     copy_res = {};
     cur_jobs = [];
     for icond = 1:Conditions
         for ii = 1:length(session_list)
-                fname = strcat(session_list{ii}, '/AudiVisual_Depend_', num2str(icond) , '*');
-                [ epo, epo_r] = ...
-                    stdERPanalysis(fname, {stim_target stim_nontarget; 'Target' 'Non-Target'}, ...
-                    'hp_filt', [.4, .2, 3, 30], 'lp_filt', [17 25 3 50],'varReject_freq_band', [5 25],  'ref_ival', []);
-                epo = proc_selectChannels(epo, scalpChannels);
-                epo_avg = proc_average(epo);
-                dmy = proc_selectClasses(epo_avg, 'Non-Target');
-                jobs(jobs_c) =  mgsub({'J_rec', 'te'},'core_realdata_cluster_norm', ...
-                    {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=8G');
-                cur_jobs = [cur_jobs jobs(jobs_c)];
-                jobs_c = jobs_c + 1;
-                dir = strcat('/home/jscastanoc/results_final_real_norm/',session_list{ii});
-                file_name = strcat(dir,'/',methods{c_meth},'Cond',num2str(icond),'.mat');
-                copy_res{end+1} = file_name;
-        end        
+            fname = strcat(session_list{ii}, '/AudiVisual_Depend_', num2str(icond) , '*');
+            [ epo, epo_r] = ...
+                stdERPanalysis(fname, {stim_target stim_nontarget; 'Target' 'Non-Target'}, ...
+                'hp_filt', [.4, .2, 3, 30], 'lp_filt', [17 25 3 50],'varReject_freq_band', [5 25],  'ref_ival', []);
+            epo = proc_selectChannels(epo, scalpChannels);
+            epo_avg = proc_average(epo);
+            dmy = proc_selectClasses(epo_avg, 'Non-Target');
+            jobs(jobs_c) =  mgsub({'J_rec', 'te'},'core_realdata_cluster_norm', ...
+                {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=6G');
+            cur_jobs = [cur_jobs jobs(jobs_c)];
+            jobs_c = jobs_c + 1;
+            dir = strcat('/home/jscastanoc/real_data_results/',session_list{ii});
+            file_name = strcat(dir,'/',methods{c_meth},'Cond',num2str(icond),'.mat');
+            copy_res{end+1} = file_name;
+        end
     end
     mgwait(cur_jobs);
     
@@ -86,17 +85,12 @@ for c_meth = 1:numel(methods)
     for cc_res = cur_jobs
         or = strcat('/home/jscastanoc/svn_test/matgrid/jobs/',num2str(cc_res),'/mgjob_results.mat');
         dest = copy_res{aux};
-        try
-            movefile(or,dest);
-            load(or);
-            J_rec = mgjob.results{1};
-            time = mgjob.results{2};
-            save(dest,'J_rec','time');
-            delete(or);
-        catch
-            err_var = true;
-            save(file_name,'err_var');
-        end
+        movefile(or,dest);
+        load(or);
+        J_rec = mgjob.results{1};
+        time = mgjob.results{2};
+        save(dest,'J_rec','time');
+        delete(or);
         aux = aux+1;
     end
     mgclear(cur_jobs);

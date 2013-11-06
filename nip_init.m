@@ -27,5 +27,5 @@ addpath(strcat(fileparts(which('nip_init')),'/external/L1_homotopy/'));
 addpath(strcat(fileparts(which('nip_init')),'/external/RWL1DF/'));
 addpath(strcat(fileparts(which('nip_init')),'/external/kkmeans/'));
 ltfatstart;
-setup_path;
+% setup_path;
 end
