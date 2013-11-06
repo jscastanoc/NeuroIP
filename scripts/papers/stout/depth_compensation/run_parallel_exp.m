@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 function run_parallel_exp(Nexp,Nact,Ntrials,methods,Nparallel, dir_data,dir_results, dir_error, snr_bio)
+=======
+function run_parallel_exp(Nexp,Nact,Ntrials,methods,Nparallel, dir_data,dir_results, snr_bio)
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 % Function to run in parallel the experiments using (already existent)
 % simulated data corresponding to:
 % Input:
@@ -20,7 +24,11 @@ for i = Nexp
         for k = Ntrials
             for m = 1:numel(methods)
                 n = n+1;
+<<<<<<< HEAD
                 args = {i,j,k,methods(m),dir_data,dir_results,dir_error,snr_bio};
+=======
+                args = {i,j,k,methods(m),dir_data,dir_results,snr_bio};
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
                 createTask(job, @core, 0,args);
                 
                 if ((n >= Nparallel) || ((i == Nexp(end)) && ...
@@ -45,15 +53,26 @@ for i = Nexp
 end
 end
 
+<<<<<<< HEAD
 function core(Nexp,Nact,Ntrials,methods,dir_data,dir_results,dir_error,snr_bio)
+=======
+function core(Nexp,Nact,Ntrials,methods,dir_data,dir_results,snr_bio)
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 nip_init();
 load_data;
 
 % Depth compensation
+<<<<<<< HEAD
 [model.L, extras] = nip_depthcomp(model.L, struct('type','sLORETA') );
 % [model.L] = nip_depthcomp(model.L, struct('type','Lnorm','gamma',0.8) );
 Winv =extras.Winv;
 clear extras;
+=======
+% [model.L, extras] = nip_depthcomp(model.L, struct('type','sLORETA') );
+% [model.L] = nip_depthcomp(model.L, struct('type','Lnorm','gamma',0.8) );
+% Winv =extras.Winv;
+% clear extras;
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 
 if sum(ismember(methods,{'LOR','KAL','IRA3','IRA5','LORPROJ'}))
     Laplacian = laplace_loreta(model.cortex.vc);
@@ -106,7 +125,11 @@ for i = Nexp'
                     case 'S-FLEX'
                         [J_est, extra] = nip_sflex(model.y, model.L, basis, reg_par);
                     case 'TF-MxNE'
+<<<<<<< HEAD
                         [J_est,extra] = nip_tfmxne_port(model.y, model.L, options,[]);
+=======
+                        [J_est,extra] = nip_tfmxne_port(model.y, model.L, options);
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
                     case 'STOUT'
                         [J_est,extra] = nip_stout(model.y, model.L, basis,[]);
                     otherwise
@@ -117,6 +140,7 @@ for i = Nexp'
                 file_name = strcat(dir,'/',methods{m},'Exp',num2str(i),'Ntrials',...
                     num2str(k),'BioNoise',num2str(snr_bio),'.mat');
                 
+<<<<<<< HEAD
                 % ----- Uncomment if depth compensation with sLORETA ----%
                 J_est = nip_translf(J_est');
                 J_est = permute(J_est,[2 1 3]);
@@ -125,6 +149,16 @@ for i = Nexp'
                 end
                 J_est = permute(J_est,[2 1 3]);
                 J_est = nip_translf(J_est)';
+=======
+                % -------Comment if depth compensation with sLORETA------%
+%                 J_est = nip_translf(J_est');
+%                 J_est = permute(J_est,[2 1 3]);
+%                 for i = 1:3
+%                     J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
+%                 end
+%                 J_est = permute(J_est,[2 1 3]);
+%                 J_est = nip_translf(J_est)';
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
                 %--------------------------------------------------------%
                 
                 idx = find(sqrt(sum(J_est.^2)) <= 0.01*sqrt(sum(J_est.^2)));
@@ -132,6 +166,7 @@ for i = Nexp'
                 J_est = sparse(J_est);
                 
                 save(file_name,'J_est','extra','time');
+<<<<<<< HEAD
                 
                 
                 dir = strcat(dir_error,num2str(j));
@@ -139,6 +174,8 @@ for i = Nexp'
                     num2str(k),'BioNoise',num2str(snr_bio),'.mat');
                 er = nip_all_errors(model.y,model.L,J_est,Jclean,model.cortex,actidx);
                 save(file_name,'er');
+=======
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
             end
         end
     end
