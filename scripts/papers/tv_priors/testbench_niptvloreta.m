@@ -15,7 +15,11 @@ gen_eeg;
 
 % Show simulated activity
 if verbose
+<<<<<<< HEAD
     nip_reconstruction3d(model.cortex,sqrt(sum(J.^2,2)),struct('view',[90 0]));
+=======
+    nip_reconstruction3d(model.cortex,sqrt(sum(J.^2,2)),[]);
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
     pause(0.01)
 end
 

@@ -19,7 +19,11 @@ end
 
 %% Preprocessing
 % Depth bias compensation
+<<<<<<< HEAD
 % model.L = nip_depthcomp(model.L,0.1);
+=======
+model.L = nip_depthcomp(model.L,0.1);
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 
 %% SVD freq decomposition
 
