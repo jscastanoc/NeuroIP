@@ -1,7 +1,7 @@
 function [J_rec,te] = testbench_realdata_cluster(methods,dmy)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Testbench for LORETA SFLEX TFMxNE and Proposed %%%%%
+%%%% Testbench for LORETA SFLEX TFMxNE and STOUT %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,8 +47,13 @@ model.y = model.y(find(ismember(clab,sa.clab_electrodes)),:);
 clear L sa cfg;
 
 
+transM = (1+(1/model.Nc))*eye(model.Nc)-(1/model.Nc)*ones(model.Nc,model.Nc);
 
-if sum(ismember(methods,{'S+T','S-FLEX'}))
+model.y = transM*model.y;
+model.L = transM*model.L;
+
+
+if sum(ismember(methods,{'STOUT','S-FLEX'}))
     nbasis = size(model.L,2)/3;
     iter_basis = [1.5];
     basis = [];
@@ -66,14 +71,6 @@ if sum(ismember(methods,{'S+T','S-FLEX'}))
 
 end
 
-% Depth compensation
-Lsloreta = nip_translf(model.L);
-Winv = full(sloreta_invweights(Lsloreta));
-Winv = cat(3,Winv(1:end/3,1:end/3),Winv(end/3 +1:2*end/3,end/3 +1:2*end/3),Winv(2*end/3 +1 :end,2*end/3 +1:end));
-for i = 1:3
-    Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
-end
-model.L = nip_translf(Lsloreta);
 
 switch methods
     case 'LOR'
@@ -94,18 +91,13 @@ switch methods
         options.tol = 1e-2;
         [J_rec,~] = nip_tfmxne_port(model.y,model.L,options);
         
-    case 'S+T'
-        options.iter = 50;
-        options.spatial_reg =1.5;
-        options.temp_reg = 0.5;
+    case 'STOUT'
+        options.iter = 500;
+        options.spatial_reg =70;
+        options.temp_reg = 0.01;
         options.tol = 1e-2;
-        [J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis{1},options);
+        [J_rec,~] = nip_stout(model.y,model.L,basis{1},options);
     otherwise
         error(strcat('Nah! ',methods{i},' is not available'))
 end
-J_est = nip_trans_solution(J_rec);
-for i = 1:3
-    J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
-end
-J_est = nip_trans_solution(J_est);
 te = toc;

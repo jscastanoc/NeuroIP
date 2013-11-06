@@ -10,8 +10,13 @@
 % Initialization and creation of the structures used in some functions
 close all; clc; clear
 
+<<<<<<< HEAD
 Ntrials = [5 20 50 100 250];
 act_sources = 5;
+=======
+Ntrials = [20 100 250];
+act_sources = [1];
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 % Ntrials = [210];
 snr_bio = -5;
 % snr_bio = [5]
@@ -88,5 +93,5 @@ for ier = 1:length(errors)
     ylabel(titles{ier})
     errorname = strcat('ActS',num2str(act_sources),'_',err{ier});
     fig_name = strcat('/mnt/data/ResultadosBerlin/FiguresOthers/',errorname);
-    savefig(fig_name, ff(ier), 'eps');
+%     savefig(fig_name, ff(ier), 'eps');
 end

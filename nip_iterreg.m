@@ -95,7 +95,7 @@ Gamma_k = (1/gamma)*RTR_inv;
 wk = zeros(Np,1);
 % wk(1) = 0.9;
 w_par=[];
-fprintf('Computing kalman... \n');
+fprintf('Computing IRA... \n');
 rev_line = '';
 eta = 0;
 etat = eta;

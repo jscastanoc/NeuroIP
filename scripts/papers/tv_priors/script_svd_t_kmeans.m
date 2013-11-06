@@ -1,17 +1,27 @@
 % Script for dictionaries generated using the principal components of the
 % covariance in the time domain (London Style xD)
 %% Init
+<<<<<<< HEAD
 % clear; close all; clc;
 close all;
 nip_init();
 verbose = true;
 
+=======
+clear; close all; clc;
+nip_init();
+verbose = true;
+
+addpath('external');
+addpath('external/kkmeans');
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 % Load data, define sample rate, number of eeg channels, etc...
 load_data;
 
 % Simulate brain activity and generate pseudo EEG
 gen_eeg;
 
+<<<<<<< HEAD
 opt3d = struct('view',[90 0]);
 % Show simulated activity
 if verbose
@@ -19,6 +29,14 @@ if verbose
     pause(0.01)
 end
 break
+=======
+% Show simulated activity
+if verbose
+    nip_reconstruction3d(model.cortex,sqrt(sum(J.^2,2)),[]);
+    pause(0.01)
+end
+
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 %% Preprocessing
 % Depth bias compensation
 % model.L = nip_depthcomp(model.L,0.1);
@@ -43,7 +61,10 @@ if verbose
     title('Original')
     pause(0.01)
 end
+<<<<<<< HEAD
 savefig('eeg',gcf,'eps')
+=======
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 
 % Spatial dictionary in case we solve with, for example, S-FLEX
 sp_dict = nip_fuzzy_sources(model.cortex,2,struct('dataset','montreal','save',true));
@@ -51,9 +72,20 @@ idx = find(sp_dict < 0.05*max(abs(sp_dict(:))));
 sp_dict(idx) = 0;
 sp_dict = sparse(sp_dict);
 
+<<<<<<< HEAD
 
 
 aff = nip_fuzzy_sources(model.cortex,4.5,struct('dataset','montreal','save',true));
+=======
+if verbose
+    figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+    Nh = 1;
+    Nw = ceil(sqrt(Np));
+    ha = tight_subplot(Nh, Nw,  0.05, 0.1, 0.1);
+end
+
+aff = nip_fuzzy_sources(model.cortex,6,struct('dataset','montreal','save',true));
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 finalD =[];
 for i = 1:Np
     D(:,i) = nip_lcmv(y_proj(:,i),model.L);
@@ -74,7 +106,18 @@ for i = 1:Np
         D(idx3,i) = 0;
     end    
     D(:,i) = D(:,i)./norm(D(:,i));
+<<<<<<< HEAD
  
+=======
+    
+    
+    if verbose
+        axes(ha(i));
+        nip_reconstruction3d(model.cortex,D(:,i), []);
+        pause(0.01)
+    end
+    
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
     
     % Clustering    
     idx = find(De);
@@ -141,6 +184,7 @@ end
 % L = model.L*Df;
 L = model.L*finalD;
 
+<<<<<<< HEAD
 if verbose
     figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
     Nh = ceil(sqrt(Np));
@@ -151,6 +195,8 @@ end
 for i = 1:size(finalD,2)
     nip_reconstruction3d(model.cortex,finalD(:,i),opt3d)
 end
+=======
+>>>>>>> b8a91efd87df287ae3dddc6bc7d57ff647c4752e
 
 %% Compute hyperparameters and show results
 h = nip_kalman_hyper(model.y,L);
