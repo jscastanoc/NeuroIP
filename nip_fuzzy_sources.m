@@ -1,5 +1,5 @@
 function aff = nip_fuzzy_sources(cortex, sigma, varargin)
-% aff = nip_fuzzy_sources(cortex, sigma)
+% aff = nip_fuzzy_sources(cortex, sigma,options)
 % This function returns a matrix that contains information about the
 % distance between points in a graph. It places a gaussian with variance = sigma
 % in each vertex
@@ -7,6 +7,7 @@ function aff = nip_fuzzy_sources(cortex, sigma, varargin)
 %       cortex -> Struct. Structure containing the vertices and faces of
 %       the graph
 %       sigma -> Scalar. Variance of the gaussian placed at each vertex
+%		options
 % Output:
 %       aff -> NdxNd. Symmetrical matrix in which the i-th column
 %       represents the gaussian placed a round the i-th vertex.

@@ -1,7 +1,7 @@
 function thesis_core(Nexp,Nact,Ntrials,methods,dir_data,dir_results,dir_error,snr_bio,model, Jclean, actidx)
 
 nip_init();
-load_data;
+% load_data;
 
 
 if sum(ismember(methods,{'STOUT','S-FLEX','LORTV'}))

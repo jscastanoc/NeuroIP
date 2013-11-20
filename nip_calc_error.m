@@ -1,5 +1,7 @@
 function error_array = nip_calc_error(Y,L,J_sim,J_est)
 % error_array = nip_calc_error(y,L,J_sim,J_est)
+% Another function to calculate errors: y-LJ, J-J_rec and Jproj-J
+% These measurements shouldn't be used I think....
 %
 % Juan S. Castano C.
 % 3 Mar 2013

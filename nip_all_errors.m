@@ -1,6 +1,21 @@
 function er = nip_all_errors(y,L,J_rec,Jclean,cortex,actidx)
 % er = nip_all_errors(y,L,J_rec,Jclean,cortex,actidx)
-
+% Function to compute Earth mover's distance, maximum correlation, geodesic distance,
+% weighted geodesic distance, explained variance and spatial accuracy inde.
+% Input:
+% 		y -> NcxNt. Matrix with EEG measurements.
+% 		L -> 3NdxNt. Lead field matrix.
+% 		J_rec -> 3NdxNt. Reconstructed activity.
+% 		Jclean -> 3NdxNt. Ground truth of the brain activity.
+% 		cortex -> Struct. Structure containing the mesh describing the cortex of the brain
+% 						 With the fields vc and tri or vertices and faces.
+% 		actidx -> Indices of the active dipoles (between 1 and Nd).
+%
+% Output:
+% 		er -> 1x6 vector with the errors.
+%
+% Juan S. Castano
+% jscastanoc@gmail.com
 
 Nd= size(cortex.vc,1);
 tic

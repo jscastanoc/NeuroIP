@@ -6,6 +6,7 @@ load clab_full % Labels for 118 channels
 clab_full = labels;
 load clab_10_10; % Labels for 59 channels under 10 10 protocol
 clab = clab_10_10;
+clab = labels;
 % data_name = 'montreal';
 % sa = prepare_sourceanalysis(clab, data_name);
 

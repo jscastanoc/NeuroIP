@@ -26,7 +26,7 @@ Nd = size(model.cortex.vc,1);
 Ntrials = [5 20 50 100 250];
 % Ntrials = 250;
 % act_sources = [1 3 5];
-act_sources = [1,3,5];
+Nact = [1,3,5];
 % Ntrials = [210];
 snr_meas = 0;
 snr_bio = -5;
@@ -62,6 +62,7 @@ for i = Nexp
                 file_name = strcat(dir,'Exp',num2str(i),'Ntrials',...
                     num2str(k),'BioNoise',num2str(snr_bio),'.mat');
                 load(file_name);
+                load_data;
                 model.fs = fs;
                 model.y = y;
                 model.Nt = size(y,2);

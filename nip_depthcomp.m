@@ -4,8 +4,9 @@ function varargout = nip_depthcomp(L,varargin)
 % field matrix. 
 %  Input:
 %       L       -> Ncx3Nd. Lead field matrix.
-%       gamma   -> Scalar. Normalization parameter. 0 means no
-%           normalization. 1 means maximum normalization.
+%       options -> struct
+%				type: 'Lnorm' or 'sLORETA'
+%				gamma: (only if Lnorm) strengh of normalization
 %  Output:
 %       Lcomp   -> Ncx3Nd. Normalized lead field matrix.
 %       extra

@@ -1,5 +1,5 @@
 function nip_3d_video(cortex,data,y,t,varargin)
-% function nip_3d_video(cortex,data,y,t,c_fig)
+% function nip_3d_video(cortex,data,y,t,options)
 % Shows a video of the activity in contained in data and the time series of
 % the electrode measurements.
 % Input:
@@ -12,8 +12,8 @@ function nip_3d_video(cortex,data,y,t,varargin)
 %       y -> NcxNt. Time series of the EEG (electrodes' measurements).
 %       t -> 1xNt. Time vector (in secs of ms) with which y was
 %               recorded/simulated.
-%       options -> varargin.
-%           figure. figure id where the video is going to be shown.
+%       options -> struct.
+%           	figure. figure id where the video is going to be shown.
 % Output:
 %
 % Juan S. Castano C.
@@ -59,12 +59,17 @@ vc= jet(nc); % If you want to change the colormap used, here is where you should
 
 figure(options.figureid);
 subplot(2,1,1)
+
+if ~isempty(t)&&~isempty(y)
 plot(t,y);
 hold on
 time_mkr = plot([0 0], [max(y(:)) min(y(:))],'r');
+end
 
-for i= 1:length(t)
+for i= 1:size(data,2)
+    if ~isempty(t)&&~isempty(y)
     set(time_mkr, 'XData', [t(i) t(i)]);
+    end
     data = floor(data_m(:,i)*(nc-1))+1;
     vca = vc(data,:);
     

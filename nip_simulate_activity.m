@@ -53,7 +53,7 @@ if isscalar(act_dip)
                 % You pick a point that's in the center of the brain and
                 % sample only the dipoles that are farther from that point
                 % This is done to make simulation only with superficial
-                % sources
+                % sources, JUST FOR "VISUALIZATION" PURPOSES
             point = mean(dip_pos);
             point(3) = point(3) - point(3)*0.2;
             dists = dist([dip_pos; point]' );

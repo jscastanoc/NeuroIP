@@ -78,10 +78,6 @@ end
 
 
 
-idx = find(data_m < crange(1));
-data_m(idx) = crange(1);
-idx = find(data_m > crange(2));
-data_m(idx) = crange(2);
 
 
 
@@ -92,7 +88,14 @@ data_m(idx) = crange(2);
 %     data_m = data_m+0.5;
 % end
 
-data_m = data_m./max(abs(data_m));
+data_m = data_m./abs(options.crange(2));
+
+idx = find(data_m < crange(1));
+data_m(idx) = crange(1);
+idx = find(data_m > 1);
+data_m(idx) = 1;
+
+
 if ~isempty(find(data_m<0))
    data_m = (data_m+1)/2;
 end

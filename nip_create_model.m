@@ -1,5 +1,9 @@
 function model = nip_create_model(cfg)
 % model = nip_create_model(cfg) 
+% returns a copy of the input structure.
+% If the input structure constains L (Leadfield matrix) and t (time vector),
+% the returned structure will also contain number of dipoles in L (3Nd), number of 
+% channels, and number of time instants.
 
 model = cfg;
 
