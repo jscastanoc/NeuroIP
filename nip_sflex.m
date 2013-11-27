@@ -7,7 +7,7 @@ function [J_est, extras] = nip_sflex(y, L, basis, reg_par)
 %       y -> NcxNt. Matrix containing the data,
 %       L -> NcxNd. Lead Field matrix
 %       basis-> NdxNs. Matrix containing the spatial basis functions.
-%       reg_par-> Scalar. Regularization parameter (1e-6 by default)
+%       reg_par-> Scalar. Regularization parameter (1e-2 by default)
 % Output:
 %       J_rec -> NdxNt. Reconstructed activity (solution)
 %       extras.regpar -> Scalar. Optimum regularization parameter
@@ -22,7 +22,7 @@ NDUM = 3;
 Nd = size(L,2);
 
 if nargin <=3
-    reg_par = 1e-6;
+    reg_par = 1e-2;
 end
 
 L = nip_translf(L);

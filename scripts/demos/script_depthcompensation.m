@@ -35,42 +35,59 @@ end
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
-
-
-
-% Depth compensation
-depth = 'sLORETA';
-switch depth
-    case 'none'
-        L = model.L;
-    case 'Lnorm'
-        gamma = 0.6;
-        L = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma)); 
-    case 'sLORETA'
-       [L, extras] = nip_depthcomp(model.L,struct('type',depth)); 
-       Winv = extras.Winv;
-       clear extras;
-end
-
-
-% Normalizacion usando la matrix de sLORETA (optional)
-
-% Anadir ruido
 snr = 10;
 model.y = nip_addnoise(clean_y, snr);
 
 
 
-%%%%%%%%%%%%%%
-% Estimacion %
-%%%%%%%%%%%%%%
-% Estimar actividad (en este caso LORETA por que se usa el laplaciano
-% espacial para hallar la matriz de covarianza
-Q = eye(model.Nd); %Matriz de covarianza apriori
-[J_est, extras] = nip_loreta(model.y, L, Q);
-% J_est = nip_sloreta(model.y,model.L);
-% Q = diag(sqrt(sum(J_est,2)));
-% [J_est, extras] = nip_loreta(model.y, model.L, Q);
+% Depth compensation
+depth = 'none';
+switch depth
+    case 'none'
+        L = model.L;
+    case 'Lnorm'
+        gamma = 0.6;
+        L = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+    case 'sLORETA'
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth));
+        Winv = extras.Winv;
+        clear extras;
+end
+
+
+%% SOLUTION %%
+
+method= 'TFMxNE';
+switch method
+    case 'LORETA'
+        Q = eye(model.Nd); %Matriz de covarianza apriori
+        [J_est, extras] = nip_loreta(model.y, L, Q);
+    case 'TFMxNE'
+        options.spatial_reg = 80;
+        options.temp_reg =  0.5;
+        options.iter = 50;
+        options.tol = 2e-2;
+        [J_est, extras] = nip_tfmxne_port(model.y, L, options);
+    case 'STOUT' 
+        % Spatial dictionary
+        sigma = 1;
+        B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
+        
+        % Options for the inversion
+        options.spatial_reg = 80;
+        options.temp_reg =  0.5;
+        options.iter = 50;
+        options.tol = 2e-2;
+        [J_est, extras] = nip_stout(model.y, L, B, options);
+    case 'SFLEX'
+        % Spatial dictionary
+        sigma = 1;        
+        B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
+        
+        % Options for the inversion
+        reg_par = 1;
+        [J_est, extras] = nip_sflex(model.y, L, B, reg_par);
+end
 
 
 if strcmp(depth,'sLORETA')
@@ -91,8 +108,7 @@ plot(model.t,J')
 xlabel('Time')
 ylabel('Amplitude')
 
-% Espacial en un instante de tiempo dado
-% t_0 = 25ms
+
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
 nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca));
 
@@ -103,7 +119,6 @@ plot(model.t,J_est')
 xlabel('Time')
 ylabel('Amplitude')
 
-% Espacial en un instante de tiempo dado
-% t_0 = 25ms
+
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
 nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca));
