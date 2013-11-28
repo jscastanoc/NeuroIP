@@ -41,23 +41,23 @@ model.y = nip_addnoise(clean_y, snr);
 
 
 % Depth compensation
-depth = 'none';
+depth = 'Lnorm';
 switch depth
     case 'none'
         L = model.L;
-    case 'Lnorm'
-        gamma = 0.6;
-        L = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+    case 'Lnorm'        
+        gamma = 0.9;
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+        Winv = extras.Winv;
     case 'sLORETA'
         [L, extras] = nip_depthcomp(model.L,struct('type',depth));
-        Winv = extras.Winv;
-        clear extras;
+        Winv = extras.Winv;        
 end
-
+clear extras;
 
 %% SOLUTION %%
 
-method= 'TFMxNE';
+method = 'STOUT';
 switch method
     case 'LORETA'
         Q = eye(model.Nd); %Matriz de covarianza apriori
@@ -90,7 +90,7 @@ switch method
 end
 
 
-if strcmp(depth,'sLORETA')
+if ~strcmp(depth,'none')
     J_est = nip_translf(J_est');
     for i = 1:3
         J_est(:,:,i) = (Winv(:,:,i)*J_est(:,:,i)')';
@@ -98,9 +98,18 @@ if strcmp(depth,'sLORETA')
     J_est = nip_translf(J_est)';
 end
 
-%%%%%%%%%%%%%%%%%
-% Visualizacion %
-%%%%%%%%%%%%%%%%%
+%% ERROR MEASURES %% 
+r = 5;
+[out, Ms, Mr] = nip_error_sai(model.cortex, J,J_est, r);
+out
+       
+dist = nip_fuzzy_sources(model.cortex,[], ...
+    struct('save',1,'dataset','montreal','calc','dist'));
+
+
+emd = nip_emd(J,J_est,dist);
+
+%% Visualization %%
 %%% Visualizacion de la simulacion %%%
 %Temporal
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
@@ -110,8 +119,12 @@ ylabel('Amplitude')
 
 
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca));
-
+nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca)); hold on;
+idx_localmax = find(Ms);
+scatter3(model.cortex.vc(idx_localmax,1),...
+    model.cortex.vc(idx_localmax,2),...
+    model.cortex.vc(idx_localmax,3),...
+    'filled','MarkerFaceColor','k')
 %%% Visualizacion de la reconstruccion %%%
 %Temporal
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
@@ -121,4 +134,7 @@ ylabel('Amplitude')
 
 
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca));
+nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca)); hold on;
+idx_localmax = find(Mr);
+scatter3(model.cortex.vc(idx_localmax,1),model.cortex.vc(idx_localmax,2),model.cortex.vc(idx_localmax,3),'filled')
+

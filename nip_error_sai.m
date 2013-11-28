@@ -1,4 +1,4 @@
-function [sai, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
+function [out, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
 % [sai, Ms, Mr]  = nip_error_sai(cortex, J_sim,J_rec, r)
 %
 % Computes an spatial accuracy index to evaluate the spatial quality of an
@@ -11,10 +11,10 @@ function [sai, Ms, Mr] = nip_error_sai(cortex, J_sim,J_rec, r)
 %       J_sim -> NdxNt. Simulated brain activity.
 %       J_rec -> NdxNt. Reconstructed brain activity.
 %       r -> scalar. If a local maximum in the reconstructed activity is
-%           with a radius r of a local maximum in the simulated activity, then
-%           it is considered a True Positive
+%           with a radius r (using geodesic distance) of a local maximum
+%           in the simulated activity, then it is considered a True Positive
 % Output:
-%       sai -> scalar. Spatial Accuracy Index
+%       out -> struct. Contains sai, spec (specificity), and sens (sensitivity)
 %       Ms ->   Ndx1. Indexes local maxima of the simulated activity 
 %                   Contains 1 if the corresponding dipole is a
 %                   local maximum. 0 otherwise.
@@ -51,7 +51,7 @@ D = nip_fuzzy_sources(cortex,[],struct('dataset','montreal','save',true,'calc','
 GeoD = D;
 
 % Create spatial "masks"
-sp_tol = 4; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
+sp_tol = r; % If the energy of a dipole is the biggest within an area of sp_tol, then it is a local maxima
 idx = find(D > sp_tol);
 D(idx) = 0;
 idx = find(D);
@@ -68,7 +68,7 @@ Er = Er-min(Er);
 Er = Er/max(Er);
 
 % Threshold values of the average (denoise(?))
-thr = 0.05;
+thr = 0.02;
 idx = find(Es < thr);
 Es(idx) = 0;
 idx = find(Er < thr);
@@ -109,10 +109,26 @@ for i = find(Mr)'
         TP = TP + 1;
     else
         FP = FP + 1;
+    end    
+end
+
+TN = 0;
+FN = 0;
+for i = find(~Mr)'
+    if sum(D(:,i).*~Ms) > 0
+        TN = TN +1;
+    else
+        FN = FN +1;
     end
 end
 
+specificity = TN/(TN+FP);
+sensitivity = TP/(TP+FN);
+
 sai = TP/(TP+FP);
-   
+
+out.sai = sai;
+out.spec = specificity;
+out.sens = sensitivity;
 end
 

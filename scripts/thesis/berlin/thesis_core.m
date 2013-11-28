@@ -55,8 +55,11 @@ for i = Nexp
                 J_rec = sparse(J_rec);
                 time = toc;
                 
+                
+                %%% Compute Errors %%%
                 er = nip_all_errors(model.y(:,round(end/9):end),model.L,...
                     J_rec(:,round(end/9):end),Jclean(:,round(end/9):end),model.cortex,actidx);
+                %%% -------------- %%%
                 
                 dir = strcat(dir_results,num2str(j));
                 file_name = strcat(dir,'/',methods{m},'Exp',num2str(i),'Ntrials',...

@@ -4,7 +4,7 @@ function distance = nip_emd(Sol1, Sol2, aff)
 % reconstruction.
 % Input:
 %       Sol1 and Sol2 -> 3Ndx1. activity in each dipole.
-%       aff -> NdxNd. Affinity/distance matrix between all the dipoles.
+%       aff -> NdxNd. distance matrix between all the dipoles.
 % Output:
 %       distance -> Scalar. Earth mover's distance.
 %
@@ -12,10 +12,10 @@ function distance = nip_emd(Sol1, Sol2, aff)
 % jscastanoc@gmail.com
 % 2 Sep 2013.
 
-Nd = length(Sol1);
+Nt = size(Sol1,2);
 
-sig1 = nip_energy(Sol1);
-sig2 = nip_energy(Sol2);
+sig1 = sum(nip_energy(Sol1),2);
+sig2 = sum(nip_energy(Sol2),2);
 
 idx1 = find(sig1);
 idx2 = find(sig2);

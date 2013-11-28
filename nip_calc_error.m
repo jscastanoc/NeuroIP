@@ -19,7 +19,7 @@ Nc = size(Y,1);
 Nt = size(J,2);
 error_array = zeros(1,3);
 res_error = norm(L*J_est - Y, 'fro')^2;
-stan_error = norm(J_est - J, 'fro')^2;
+stan_error = sqrt(norm(J_est - J, 'fro'));
 J_proj = zeros(size(J));
 [U,S,V] = svd(L);
 rank_L = rank(L);
@@ -28,8 +28,8 @@ for k = 1 : size(Y,2)
         J_proj(:,k) = J_proj(:,k) + dot(J(:,k),V(:,i))*V(:,i);
     end
 end
-proj_error = norm(J_est - J_proj, 'fro')^2;
+proj_error = norm(J_est - J_proj, 'fro');
 
-error_array(1,1) = res_error/(Nc*Nt);
-error_array(1,2) = stan_error/(Nd*Nt);
-error_array(1,3) = proj_error/(Nd*Nt);
+error_array.res = res_error/(Nc*Nt);
+error_array.rmse = stan_error/(Nd*Nt);
+error_array.proj = proj_error/(Nd*Nt);

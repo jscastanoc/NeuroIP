@@ -12,8 +12,10 @@ function data_m = nip_energy(data)
 % Juan S. Castano C.
 % jscastanoc@gmail.com
 % 2 Sep 2013.
-Nd = length(data);
+[Nd Nt] = size(data);
 data_m = zeros(Nd/3,1);
+for j = 1:Nt
 for i = 1:Nd/3
-    data_m(i) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3).^2));
+    data_m(i,j) = sqrt(sum(data((i-1)*3+1:(i-1)*3+3,j).^2));
+end
 end

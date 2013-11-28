@@ -30,12 +30,12 @@ function [J_rec extras] = nip_tfmxne_port(y,L,options)
 Nt = size(y,2);
 % Initialization of the TF-MxNE algorithm
 if ~isfield(options,'a')||~isfield(options,'m')
-    options.a = 30;
+    options.a = 20;
     options.m = 100;
 end
 
 if ~isfield(options,'spatial_reg');options.spatial_reg = 80;end
-if ~isfield(options,'temp_reg');options.temp_reg =  0.01;end
+if ~isfield(options,'temp_reg');options.temp_reg =  0.1;end
 if ~isfield(options,'iter');options.iter = 50;end
 if ~isfield(options,'tol');options.tol = 2e-2;end
 if ~isfield(options,'lipschitz');options.lipschitz = [];end
@@ -129,13 +129,13 @@ for i = 1:options.iter
     active_set = active_set_l1;
     active_set(find(active_set_l1)) = active_set_l21;
     
-    
+    error_0 = error;
     if norm(active_set - active_set0) == 0
         error = norm(Z-Z_0)/norm(Z_0);
     else 
         error = inf;
     end
-    stop = error < tol;
+    stop = error < tol || error_0 < error ;
     if i < options.iter
         
         if stop 

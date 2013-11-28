@@ -12,12 +12,21 @@ function er = nip_all_errors(y,L,J_rec,Jclean,cortex,actidx)
 % 		actidx -> Indices of the active dipoles (between 1 and Nd).
 %
 % Output:
-% 		er -> 1x6 vector with the errors.
+% 		er -> 1x9 vector with the following errors:
+%             1) EMD
+%             2) Max. Correlation
+%             3) Average distance between local maxima
+%             4) 3. weighted with the achieved correlation
+%             5) Explained variance
+%             6) Spatial accuracy
+%             7) Specificity
+%             8) Sensitivity
+%             9) Root mean squared error
 %
 % Juan S. Castano
 % jscastanoc@gmail.com
 
-Nd= size(cortex.vc,1);
+Nd = size(cortex.vc,1);
 tic
 distmat = nip_fuzzy_sources(cortex,[],struct('dataset','montreal','save',true,'calc','dist'));
 toc
@@ -32,8 +41,8 @@ sig2 = sqrt(sum(Jclean.^2,2));
 sig2 = sig2/norm(sig2);
 er(1) = nip_emd(sig1,sig2,distmat);
 Jrecbckp = J_rec;
-J_rec = J_rec/max(abs(J_rec(:)));
-Jclean = Jclean/max(abs(Jclean(:)));
+J_rec = J_rec/norm(J_rec,2);
+Jclean = Jclean/norm(Jclean,2);
 
 CR = Jrecbckp;
 for i = 1:actsources
@@ -60,4 +69,9 @@ end
 er(3) = nanmean(distmax);
 er(4) = nanmean(weighted_d);
 er(5) = nip_error_tai(y,L,Jrecbckp);
-[er(6),~,~] = nip_error_sai(cortex, Jclean,J_rec,6);
+[out,~,~] = nip_error_sai(cortex, Jclean,J_rec,6);
+er(6) = out.sai;
+er(7) = out.spec;
+er(8) = out.sens;
+out = nip_calc_error(y,L,J_sim,Jrecbckp);
+er(9) = out.rmse;
