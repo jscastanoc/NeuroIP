@@ -1,4 +1,4 @@
-function Bnorm = nip_blobnorm(B,groups,options)
+function Bnorm = nip_blobnorm(B,varargin)
 % Bnorm = nip_blobnorm(B,groups,options)
 % Normalize the spatial basis functions used in SFLEX, ARD, etc...
 %  Input:
@@ -19,17 +19,27 @@ function Bnorm = nip_blobnorm(B,groups,options)
 % jscastanoc@gmail.com
 % 15 Aug 2013
 
-if ~isfield(options,'norm'); options.norm = 1; end
-if ~isfield(options,'norm_group'); options.norm_group = false; end
 
-if options.norm_group
-    c = unique(groups);
+p = inputParser;
+
+def_norm = 1;
+def_ngroup = false;
+def_groups = [];
+addParamValue(p,'norm',def_norm);
+addParamValue(p,'ngroup',def_ngroup);
+addParamValue(p,'groups',def_groups);
+
+parse(p,varargin{:})
+options = p.Results;
+
+
+if options.ngroup
+    c = unique(options.groups);
     Bnorm = [];
     for i=1:length(c);
-        idx_cur = find(groups == c(i));
+        idx_cur = find(options.groups == c(i));
         Bact = B(:,idx_cur);
-        Btemp = nip_blobnorm(Bact,[],...
-            struct('norm',options.norm,'norm_group',false));
+        Btemp = nip_blobnorm(Bact,'norm',options.norm,'ngroup',false);
         Bnorm = [Bnorm Btemp];
     end        
 else 

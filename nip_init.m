@@ -26,6 +26,7 @@ addpath(strcat(fileparts(which('nip_init')),'/help_scripts/'));
 addpath(strcat(fileparts(which('nip_init')),'/external/L1_homotopy/'));
 addpath(strcat(fileparts(which('nip_init')),'/external/RWL1DF/'));
 addpath(strcat(fileparts(which('nip_init')),'/external/kkmeans/'));
+addpath(strcat(fileparts(which('nip_init')),'/external/pymex/'));
 % ltfatstart;
 % setup_path;
 end

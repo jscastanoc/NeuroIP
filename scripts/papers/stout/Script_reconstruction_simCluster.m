@@ -50,11 +50,27 @@ dir_error = '/home/jscastanoc/error/montreal_sampleall_false/';
 % dir_results = '/mnt/data/results/montreal_sampleall_false/';
 % dir_error = '/mnt/data/error/montreal_sampleall_false/';
 
+
+depth = 'none';
+switch depth
+    case 'none'
+        L = model.L;
+    case 'Lnorm'
+        gamma = 0.6;
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+        Winv = extras.Winv;
+    case 'sLORETA'
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth));
+        Winv = extras.Winv;
+        
+end
+clear extras;
+
 for j = 1:n_exp
     cur_jobs = [];
     copy_res = {};
     error_file = {};
-    for c_meth = 1:numel(methods)        
+    for c_meth = 1:numel(methods)
         for l = 1:length(act_sources)
             for i = Ntrials
                 method = methods{c_meth};
@@ -63,6 +79,7 @@ for j = 1:n_exp
                     num2str(i),'BioNoise',num2str(snr_bio),'.mat');
                 load(file_name);
                 model.y = y;
+                model.gof = gof;
                 
                 jobs(jobs_c) = mgsub({'J_rec', 'time', 'er'},'solvers_ip', ...
                     {model , methods{c_meth}, Jclean, act_sources(l), actidx}, 'qsub_opts', '-l h_vmem=8G');
@@ -80,7 +97,7 @@ for j = 1:n_exp
                 error_file{end+1}= file_name;
                 
             end
-        end        
+        end
     end
     mgwait(cur_jobs);
     
@@ -93,6 +110,13 @@ for j = 1:n_exp
             J_rec = mgjob.results{1};
             time = mgjob.results{2};
             
+            if ~strcmp(depth,'none')
+                J_est = nip_translf(J_rec');
+                for i = 1:3
+                    J_est(:,:,i) = (Winv(:,:,i)*J_est(:,:,i)')';
+                end
+                J_rec = nip_translf(J_est)';
+            end
             dest = copy_res{aux};
             save(dest,'J_rec','time','dir_base');
             

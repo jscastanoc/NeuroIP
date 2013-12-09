@@ -23,7 +23,9 @@ act = sin(2*pi*10*model.t);
 
 % Simular actividad "act" en el dipolo más cercano a las coordenadas [30
 % -20 30]
-[J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
+% [J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
+[J, ~] = nip_simulate_activity(model.cortex.vc,1, act, randn(1,3), model.t);
+
 
 % Hay dispersion de la actividad, entre mas grande el numero, mas dispersa es la actividad
 fuzzy = nip_fuzzy_sources(model.cortex,1);
@@ -41,12 +43,12 @@ model.y = nip_addnoise(clean_y, snr);
 
 
 % Depth compensation
-depth = 'Lnorm';
+depth = 'none';
 switch depth
     case 'none'
         L = model.L;
     case 'Lnorm'        
-        gamma = 0.9;
+        gamma = 0.6;
         [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
         Winv = extras.Winv;
     case 'sLORETA'
@@ -59,34 +61,41 @@ clear extras;
 
 method = 'STOUT';
 switch method
-    case 'LORETA'
+    case 'LOR'
         Q = eye(model.Nd); %Matriz de covarianza apriori
         [J_est, extras] = nip_loreta(model.y, L, Q);
-    case 'TFMxNE'
-        options.spatial_reg = 80;
-        options.temp_reg =  0.5;
+    case 'TF-MxNE'
+        spatial_reg = 100;
+        temp_reg =  1;
         options.iter = 50;
         options.tol = 2e-2;
-        [J_est, extras] = nip_tfmxne_port(model.y, L, options);
+        [J_est, extras] = nip_tfmxne_port(model.y, L, 'optimgof',true,...
+                'sreg',spatial_reg,'treg',temp_reg);
     case 'STOUT' 
         % Spatial dictionary
         sigma = 1;
         B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
+%         n = 10;
+%         idx = randsample(4001,1000);        
+        B = nip_blobnorm(B);
+        
+        
         
         % Options for the inversion
-        options.spatial_reg = 80;
-        options.temp_reg =  0.5;
+        spatial_reg = 250;
+        temp_reg =  1;
         options.iter = 50;
         options.tol = 2e-2;
-        [J_est, extras] = nip_stout(model.y, L, B, options);
-    case 'SFLEX'
+        [J_est, extras] = nip_stout(model.y, L, B,'optimgof',true,...
+                'sreg',spatial_reg,'treg',temp_reg);
+    case 'S-FLEX'
         % Spatial dictionary
         sigma = 1;        
         B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
-        
+        B = nip_blobnorm(B);
         % Options for the inversion
-        reg_par = 1;
-        [J_est, extras] = nip_sflex(model.y, L, B, reg_par);
+        reg_par = 100;
+        [J_est, extras] = nip_sflex(model.y, L, B, 'regpar', reg_par,'optimgof',true);
 end
 
 

@@ -1,4 +1,4 @@
-function [J_rec extras] = nip_stout(y,L,B,options)
+function [J_rec extras] = nip_stout(y,L,B,varargin)
 % function [J_rec extras] = nip_stout(y,L,B,options)
 % Input:
 %         y -> NcxNt. Matrix containing the data,
@@ -27,7 +27,7 @@ for i = 1:3
     Lnew(:,:,i) = Ltemp(:,:,i)*B;
 end
 Lnew = nip_translf(Lnew);
-[J_r,~] = nip_tfmxne_port(y,Lnew,options);
+[J_r,~] = nip_tfmxne_port(y,Lnew,varargin{:});
 J_rect = nip_translf(J_r');
 J_rect = permute(J_rect,[2 1 3]);
 for i = 1:3

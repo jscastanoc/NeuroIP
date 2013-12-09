@@ -64,7 +64,8 @@ for k = 1:length(snr_bio)
             dir = strcat(dir_base,num2str(length(ps)));
             file_name = strcat(dir,'/Exp',num2str(j),'Ntrials',...
                 num2str(i),'BioNoise',num2str(snr_bio(k)),'.mat');
-            save(file_name,'y','Jclean','actidx','fs');
+            gof = norm(y-L*Jclean, 'fro')/norm(y, 'fro');
+            save(file_name,'y','Jclean','actidx','fs','gof');
         end
     end
 end
