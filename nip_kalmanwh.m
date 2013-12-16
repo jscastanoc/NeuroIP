@@ -1,5 +1,5 @@
 function [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
-% [x, extras] = nip_kalmanwh(y, L, Laplacian)
+% [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
 % Computes the kalman filter estimation using a whitening to eliminate
 % spatial correlations (Presented in Galka et al. 2004). See Documentation
 % for further details.

@@ -1,4 +1,4 @@
-function h = nip_spm_priors(y,L,patches,Qe,type)
+function [h,Qp] = nip_spm_priors(y,L,patches,Qe,type)
 % function h = nip_spm_priors(y,L,patches,Qe,type)
 % Find the weights for a set of cortical "patches" using ARD or GS as
 % implemented in the SPM software package
@@ -23,50 +23,53 @@ function h = nip_spm_priors(y,L,patches,Qe,type)
 % 9. May 2013
 
 
-YY = y*y';
+% YY = y*y';
 [Nd, Np] = size(patches);
-Nc = size(L,1);
-Qp = {};
-LQpL = {};
-
-eyeNd = repmat(eye(Nd),[1,1,3]);
-
-Lnew = zeros(Nc,Nc);
+% Nc = size(L,1);
+% Qp = {};
+% LQpL = {};
+% 
+% eyeNd = repmat(eye(Nd),[1,1,3]);
+% 
+% Lnew = zeros(Nc,Nc);
+Qp = zeros(3*Nd,Np*3);
 for i = 1:Np
+%     i
     if size(L,2)~= size(patches,1);
         Ltemp = nip_translf(L);
         for k = 1:3
             for j = 1:3
                 if k==j
-                    Lnew(:,:) = Ltemp(:,:,j)*diag(patches(:,i))*Ltemp(:,:,j)';
+%                     Lnew(:,:) = Ltemp(:,:,j)*diag(patches(:,i))*Ltemp(:,:,j)';
                     Q(:,1,j) = patches(:,i);
                 else
-                    Q(:,1,j) = 0.1*ones(Nd,1,1);
+                    Q(:,1,j) = 0.0*ones(Nd,1,1);
                 end                
             end
-            LQpL{end+1}.q = Lnew;
-            Qp{end+1}.q = nip_translf(permute(Q,[2 1 3]))';
+%             LQpL{end+1}.q = Lnew;
+            Qp(:,(i-1)*3+k) = nip_translf(permute(Q,[2 1 3]))';
+%             Qp{end+1}.q = nip_translf(permute(Q,[2 1 3]))';
             Q = zeros(Nd,1,3);
         end
     else
-        Qp{end + 1}.q   = patches(:,i);
-        LQpL{end + 1}.q = L*diag(patches(:,i))*L';
+%         Qp{end + 1}.q   = patches(:,i);
+%         LQpL{end + 1}.q = L*diag(patches(:,i))*L';
     end
 end
-Np = numel(Qp);
+% Np = numel(Qp);
 switch(type)
     case {'GS'}
         % Greedy search over MSPs
-        Np    = length(Qp);
-        Q = zeros(3*Nd,numel(Qp));
-        for i = 1:size(Q,2)
-            Q(:,i) = Qp{i}.q;
-        end
+%         Np    = length(Qp);
+%         Q = zeros(3*Nd,numel(Qp));
+%         for i = 1:size(Q,2)
+%             Q(:,i) = Qp{i}.q;
+%         end
         %         Q = sparse(Q);
-        
+%         Q = patches;
         % Multivariate Bayes (Here is performed the inversion)
         %------------------------------------------------------------------
-        MVB   = spm_mvb(y,L,[],Q,Qe,16);
+        MVB   = spm_mvb(y,L,[],Qp,Qe,16);
         
         % Accumulate empirical priors (New set of patches for the second inversion)
         %------------------------------------------------------------------

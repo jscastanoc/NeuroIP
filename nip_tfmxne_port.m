@@ -45,8 +45,8 @@ Nt = size(y,2);
 
 p = inputParser;
 
-def_a = 10;
-def_m = 100;
+def_a = 8;
+def_m = 112;
 def_sreg = 80;
 def_treg= 1;
 def_maxiter = 10;

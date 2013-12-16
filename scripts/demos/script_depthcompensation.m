@@ -116,7 +116,7 @@ dist = nip_fuzzy_sources(model.cortex,[], ...
     struct('save',1,'dataset','montreal','calc','dist'));
 
 
-emd = nip_emd(J,J_est,dist);
+emd = nip_emd(J,J_est,dist)
 
 %% Visualization %%
 %%% Visualizacion de la simulacion %%%

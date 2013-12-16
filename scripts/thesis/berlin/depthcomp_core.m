@@ -1,24 +1,15 @@
-function thesis_core(Nexp,Nact,Ntrials,methods,dir_data,dir_results,dir_error,snr_bio,model, Jclean, actidx,depth)
+function [ output_args ] = depthcomp_core( input_args )
+%DEPTHCOMP_CORE Summary of this function goes here
+%   Detailed explanation goes here
+
 
 nip_init();
 % load_data;
 
 
-
-
-switch depth
-    case 'none'
-        L = model.L;
-    case 'Lnorm'
-        gamma = 0.6;
-        [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
-        Winv = extras.Winv;
-    case 'sLORETA'
-        [L, extras] = nip_depthcomp(model.L,struct('type',depth));
-        Winv = extras.Winv;
+if sum(ismember(methods,{'STOUT','S-FLEX'}))
+    basis = nip_fuzzy_sources(model.cortex,1.5,struct('dataset','montreal','save',true));
 end
-clear extras;
-
 
 for i = Nexp
     for j = Nact
@@ -27,11 +18,11 @@ for i = Nexp
                 tic;
                 switch methods{m}
                     case 'LOR'
-                        %                         Q = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
+%                         Q = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
                         Q = speye(model.Nd);
                         [J_rec,extra]  = nip_loreta(model.y,model.L,Q);
                     case 'KAL'
-                        %                         neigh = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
+%                         neigh = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
                         par = [0.5,0.01,0.002,1e-4,1e-2];
                         neigh = speye(model.Nd);
                         [J_rec,extra]  = nip_kalmanwh(model.y,model.L,neigh,par);
@@ -46,7 +37,7 @@ for i = Nexp
                         pariter = [0.0013 0.0084];
                         [J_rec,extra] = nip_iterreg(model.y,model.L,Q,neigh,5,eye(model.Nc),pariter);
                     case 'LOR_PROJ'
-                        %                         Q = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
+%                         Q = nip_translf(repmat(nip_translf(repmat(basis,[1 1 3]))',[1 1 3]));
                         Q = speye(model.Nd);
                         [y_proj,~,Ur,~]= nip_tempcomp(model.y,model.t,[0 60],0.9);
                         [J_rec,extra] = nip_loreta(y_proj,model.L,Q);
@@ -54,51 +45,16 @@ for i = Nexp
                     case 'LORTV'
                         [J_rec,extra]=nip_tvloreta(model.y,model.t,model.L,basis,model.cortex);
                     case 'S-FLEX'
-                        % Spatial dictionary
-                        sigma = 1;
-                        B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
-                        B = nip_blobnorm(B);
-                        % Options for the inversion
-                        reg_par = 100;
-                        [J_est, extras] = nip_sflex(model.y, L, B, 'regpar', reg_par,'optimgof',true,'gof',0.8);
+                        [J_rec,~]  = nip_sflex(model.y,model.L,basis,5e-5);
                     case 'TF-MxNE'
-                        spatial_reg = 100;
-                        temp_reg =  1;
-                        options.iter = 50;
-                        options.tol = 2e-2;
-                        [J_est, extras] = nip_tfmxne_port(model.y, L, 'optimgof',true,...
-                            'sreg',spatial_reg,'treg',temp_reg,'gof',0.8);
+                        [J_rec,~] = nip_tfmxne_port(model.y,model.L,[]);
                     case 'STOUT'
-                        % Spatial dictionary
-                        sigma = 1;
-                        B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
-                        %         n = 10;
-                        %         idx = randsample(4001,1000);
-                        B = nip_blobnorm(B);
-                        
-                        
-                        % Options for the inversion
-                        spatial_reg = 250;
-                        temp_reg =  1;
-                        options.iter = 50;
-                        options.tol = 2e-2;
-                        [J_est, extras] = nip_stout(model.y, L, B,'optimgof',true,...
-                            'sreg',spatial_reg,'treg',temp_reg,'gof',0.8);
+                        [J_rec,~] = nip_stout(model.y,model.L,basis,[]);
                     otherwise
                         error('%s not available as method',methods{j})
                 end
                 idx = find(sqrt(sum(J_rec.^2)) <= 0.01*sqrt(sum(J_rec.^2)));
                 J_rec(idx,:) = zeros(length(idx),model.Nt);
-                
-                
-                if ~strcmp(depth,'none')
-                    J_est = nip_translf(J_est');
-                    for i = 1:3
-                        J_est(:,:,i) = (Winv(:,:,i)*J_est(:,:,i)')';
-                    end
-                    J_est = nip_translf(J_est)';
-                end
-                
                 J_rec = sparse(J_rec);
                 time = toc;
                 
@@ -123,3 +79,4 @@ for i = Nexp
 end
 
 end
+

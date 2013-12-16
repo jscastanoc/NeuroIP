@@ -1,5 +1,5 @@
 function [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
-% x = nip_iterreg(y, L, Q, Laplacian, Np)
+% [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
 % Computes the iterative regularization algorithm to estimate brain
 % activity. See Documentation for further details.
 % Input:
@@ -36,7 +36,8 @@ Nt = size(y,2);
 eye_Nd = speye(Nd);
 eye_Nc = speye(Nc);
 
-WTW = inv(Q);
+% WTW = inv(Q);
+WTW = Q;
 
 % Sensor noise covariance
 if isempty(covmat_obs) || nargin <6
@@ -68,7 +69,7 @@ end
 % Update model for the parameters w. The random term is to "estimulate" variation on the parameters.
 % g = @(wk_1) (1-0.01*randn(1))*wk_1; 
 % g = @(wk_1) 1*wk_1; 
-g = @(wk_1) 0.5*wk_1; 
+g = @(wk_1) 1*wk_1; 
 
 
 % Empirically set, this controls the "velocity" of change of the parameters along time
@@ -92,7 +93,7 @@ Lambda_k = (1/lambda)*Q;
 Gamma_k = (1/gamma)*RTR_inv;
 
 [x, ~] = nip_loreta(y(:,1:2),L, Q);
-wk = zeros(Np,1);
+wk = 0*randn(Np,1);
 % wk(1) = 0.9;
 w_par=[];
 fprintf('Computing IRA... \n');
@@ -100,6 +101,8 @@ rev_line = '';
 eta = 0;
 etat = eta;
 for k = 3:Nt
+    plot(w_par')
+    pause(0.1)
     tic
     msg = sprintf('Iteration # %u of %u\nElapsed time for this iteration: %f \nTotal time: %f \n',k,Nt,eta,etat);
     fprintf([rev_line, msg]);
