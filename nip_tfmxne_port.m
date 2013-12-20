@@ -10,11 +10,11 @@ function [J_rec extras] = nip_tfmxne_port(y,L,varargin)
 %                       regularization (between 0 and 1).
 %                 'treg' -> scalar. Percentage of temporal
 %                       regularization (between 0 and 1).
-%                 options.a -> scalar. Time shift for the time frequency
+%                 a -> scalar. Time shift for the time frequency
 %                       transform.
-%                 options.m -> scalar. Frequency bins for the time frequency
+%                 m -> scalar. Frequency bins for the time frequency
 %                       transform.
-%                 options.tol -> Scalar. Default 5e-2
+%                 tol -> Scalar. Default 5e-2
 %   Output:
 %         J_rec -> 3NdxNt. Reconstructed activity (solution)
 %         extras. -> Currently empty
@@ -27,15 +27,6 @@ function [J_rec extras] = nip_tfmxne_port(y,L,varargin)
 % 14 Aug 2013
 
 Ndor = size(L,2);
-% Q = nip_lcmv(y,L);
-% Q = nip_energy(Q);
-% Q = Q - min(Q);
-% idx = find(Q >= 0.1*max(Q));
-% idx = (idx-1)*3;
-% idx = repmat(idx,[1,3])';
-% off = repmat([1 2 3],[1,length(idx)]);
-% idx = idx(:)'+off;
-% fprintf('Solving using %d elements\n',length(idx));
 idx = 1:1:Ndor;
 L_or = L;
 
@@ -50,10 +41,11 @@ def_m = 112;
 def_sreg = 80;
 def_treg= 1;
 def_maxiter = 10;
-def_tol = 2e-2;
+def_tol = 1e-2;
 def_gof = 0.3;
 def_lipschitz = [];
 def_optimgof = false;
+def_Winv = [];
 
 addParamValue(p,'a',def_a);
 addParamValue(p,'m',def_m);
@@ -64,6 +56,7 @@ addParamValue(p,'tol',def_tol);
 addParamValue(p,'gof',def_gof);
 addParamValue(p,'lipschitz',def_lipschitz);
 addParamValue(p,'optimgof',def_optimgof);
+addParamValue(p,'Winv',def_Winv)
 
 parse(p,varargin{:})
 options = p.Results;
@@ -92,12 +85,10 @@ J_rec = sparse(Nd,Nt);
 tau = 1;
 tempGY = L'*y;
 aux = sum(reshape(tempGY.^2',[],Nd/3)',2);
-basepar = 0.01*sqrt(max(aux(:)));
+basepar = 0.01*sqrt(max(aux(:)))
 
 L = L/basepar;
-L_or = L_or/basepar;
-
-% mu = basepar*sreg; % Spatial regularization parameterlambda = basepar*treg; % Time regularization parameter
+L_or = L_or;
 clear tempGY;
 
 R = y;
@@ -107,8 +98,7 @@ Y_time_as = [];
 Y_as = [];
 
 if isempty(options.lipschitz)
-    lipschitz_k = 0.9*lipschitz_contant(y, L, 5e-2, a, M);
-    %     lipschitz_k = 1.1*5e5;
+    lipschitz_k = 1.1*lipschitz_contant(y, L, 5e-2, a, M);
 end
 mu_lc = sreg/lipschitz_k;
 lambda_lc = treg/lipschitz_k;
@@ -125,45 +115,26 @@ gof_0 = inf;
 nn = 1;
 while true
     rev_line = '';
-    %     Z = sparse(0,K*T);
+    Z = sparse(0,K*T);
     Y = sparse(Nd,K*T);
     J_rec = sparse(Nd,Nt);
     tau = 1;
     temp =  reshape(full(Z)',K,T,[]);
-    %     active_set = logical(sparse(1,Nd));
+     active_set = logical(sparse(1,Nd));
     Y_time_as = [];
     Y_as = [];
     for i = 1:100
         tic;        
         
-        Z_0 = Z;   active_set0 = active_set;
+        Z_0 = Z;   
+        active_set0 = active_set;
         
-        % The next section is supposed to be a shortcut// However it has a bug that
-        % I haven't found... yet.
-        % Don't Worry though, the code works well without it, it just takes a little
-        % longer.
-        %         if (sum(full(active_set))/3 < size(R,1)) && ~isempty(Y_time_as)
-        %             GTR = L'*R./lipschitz_k;
-        %             A = GTR;
-        %             A(find(Y_as),:) = A(find(Y_as),:) + Y_time_as(find(Y_as),1:Nt);
-        %             [~, active_set_l21] = prox_l21(A,mu_lc,3);
-        %             idx_actsetl21 = find(active_set_l21);
-        %
-        %             aux = dgtreal(GTR(idx_actsetl21,:)','gauss',a,M);
-        %             aux = permute(aux,[3 1 2]);
-        %             aux = reshape(aux,sum(active_set_l21),[]);
-        %
-        %             B = Y(idx_actsetl21,:) + aux;
-        %             [Z, active_set_l1] = prox_l1(B,lambda_lc,3);
-        %             active_set_l21(idx_actsetl21) = active_set_l1;
-        %             active_set_l1 = active_set_l21;
-        %         else
         temp = dgtreal(R','gauss',a,M);
         temp = permute(temp,[3 1 2]);
         temp = reshape(temp,Nc,[]);
+        
         Y = Y + L'*temp/lipschitz_k;
         [Z, active_set_l1] = prox_l1(Y,lambda_lc,3);
-        %         end
         [Z, active_set_l21] = prox_l21(Z,mu_lc,3);
         active_set = active_set_l1;
         active_set(find(active_set_l1)) = active_set_l21;
@@ -174,19 +145,20 @@ while true
         else
             error = inf;
         end
-%         stop = max(abs(Z-Z_0)./abs(Z_0)) < tol;
-        stop = error < tol || error_0 < error || ...
-            (sum(full(active_set))==0 && i > 1) || ((sum(full(active_set)) > sum(full(active_set0))) && i > 1) ;
+
         
-        msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f \nCoeff~=0: %d \nRegPar S:%d T:%d \n'...
+        stop = ((sum(full(active_set)) > sum(full(active_set0))) && i > 1) ;
+        if stop
+            disp('Converged')
+            Z = Z_0;
+            active_set = active_set0;
+            break
+        end
+        msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f \nDipoles~=0: %d \nRegPar S:%d T:%d \n'...
             ,i,error,eta,sum(full(active_set))/3, mu_lc, lambda_lc);
         fprintf([rev_line, msg]);
         rev_line = repmat(sprintf('\b'),1,length(msg));
-        if i < options.maxiter
-            
-            
-            
-            
+        if i < options.maxiter 
             % line 7 of algorithm 1 (see Ref paper)
             tau_0 = tau;
             
@@ -199,41 +171,46 @@ while true
             Y(find(active_set0),:)= Y(find(active_set0),:) - dt*Z_0;
             
             
-            Y_as = active_set0|active_set;
+            Y_as = active_set0 | active_set;
             
-            temp =  reshape(full(Y)',K,T,[]);
-            temp = flipdim(temp,2);
+%             temp =  reshape(full(Y)',K,T,[]);
+            temp = full(Y(find(Y_as),:));
+            temp =  reshape(temp',K,T,[]);
+            temp = flipdim(temp,2);            
+            temp = flipud(idgtreal(temp,'gauss',a,M))';
+            Y_time_as = sparse(Nd,size(temp,2));
             Y_old = Y_time_as;
-            Y_time_as = flipud(idgtreal(temp,'gauss',a,M))';
+            Y_time_as(find(Y_as),:) = temp;
             
             % Residual
             R = y - L(:, find(Y_as))*Y_time_as(find(Y_as),1:Nt);
         end
         
+        stop = error < tol || error_0 < error ||( sum(full(active_set))==0 && i > 1);
         if stop
-            disp('Converged')
+%             disp('Converged')
             break
         end
         eta = toc;
     end
     
     fprintf(' \nDone!... \nTransforming solution to the time domain: \n%d non-zero time series \n'...
-        , sum(active_set))
+        , sum(full(active_set)))
     
     temp =  reshape(full(Z)',K,T,[]);
     temp = flipdim(temp,2);
-    
-    J_recf = sparse(Nd,size(Y_time_as,2));
-    J_recf(find(active_set),:) = flipud(idgtreal(temp,'gauss',a,M))';
+        
+    temp = flipud(idgtreal(temp,'gauss',a,M))';
+    J_recf = sparse(Nd,size(temp,2));
+    J_recf(find(active_set),:) = temp;
     J_recf = J_recf(:,1:Nt);
     Jf = zeros(Ndor,Nt);
     Jf(idx,:) = J_recf;
+    Jf = Jf*norm(y,2)/norm(L_or*Jf,2);
+    
     
     resnorm = norm(y-L_or*Jf, 'fro')/norm(y, 'fro');
-%     rescum = [rescum,resnorm];
-%     plot(rescum);
-%     pause(0.1)
-    fprintf('\nGOF = %8.5e\n', resnorm);
+    fprintf('\nGOF = %8.5e\n', 1 - resnorm);
     
     if gof_0 < resnorm;
         J_rec = Jf_0;
@@ -243,46 +220,51 @@ while true
     end
     if nn >= options.maxiter || resnorm < options.gof...
             || ~options.optimgof || gof_0 < resnorm
-%     if nn >= options.maxiter || resnorm < options.gof...
-%             || ~options.optimgof
         break;
     else
-        mu_lc = 0.75*mu_lc;
-        lambda_lc = 0.75*lambda_lc;
+        mu_lc = 0.85*mu_lc;
+        lambda_lc = 0.85*lambda_lc;
     end
     gof_0 = resnorm;
     nn = nn+1;
 end
-
+if ~isempty(options.Winv)
+    J_est = nip_translf(J_rec');
+    clear J_rec
+    for i = 1:3
+        J_rec(:,:,i) = (Winv(:,:,i)*J_est(:,:,i)')';
+    end
+    J_rec= nip_translf(J_rec)';
+end
 extras = [];
 end
 
-function sm =  safe_max_abs(A, ia)
-if isempty(ia)
-    sm = 0;
-else
-    sm = max(max(abs(A(ia))));
-end
-end
-
-function sm = safe_max_abs_diff(A,ia,B,ib)
-if isempty(ia)
-    A = 0;
-else
-    A = A(ia);
-end
-if isempty(ia)
-    B = 0;
-else
-    B = B(ib);
-end
-if isempty(A)&&isempty(B)
-    sm = 0;
-else
-    sm = max(max(abs(A-B)));
-end
-end
-
+% function sm =  safe_max_abs(A, ia)
+% if isempty(ia)
+%     sm = 0;
+% else
+%     sm = max(max(abs(A(ia))));
+% end
+% end
+% 
+% function sm = safe_max_abs_diff(A,ia,B,ib)
+% if isempty(ia)
+%     A = 0;
+% else
+%     A = A(ia);
+% end
+% if isempty(ia)
+%     B = 0;
+% else
+%     B = B(ib);
+% end
+% if isempty(A)&&isempty(B)
+%     sm = 0;
+% else
+%     sm = max(max(abs(A-B)));
+% end
+% end
+% 
 
 function [Y active_set] = prox_l21(Y,mu,n_orient)
 n_pos = size(Y,1)/n_orient;
@@ -324,15 +306,8 @@ if length(Y) > 0
 end
 end
 
-% function a = norm_l21(Z)
-%
-%     if isempty
-% end
-% function a = norm_l1(Z)
-%
-% end
-
 function k = lipschitz_contant(y, L, tol, a, M)
+% L = L(:,randsample(size(L,2),900));
 Nt = size(y,2);
 Nd = size(L,2);
 iv = ones(Nd,Nt);
@@ -344,7 +319,7 @@ l = 5e5;
 l_old = 0;
 fprintf('Lipschitz constant estimation: \n')
 rev_line = '';
-tic
+xx = tic;
 for i = 1 : 100
     msg = sprintf('Iteration = %d, Diff: %d, Lipschitz Constant: %d\nTime per iteration %d ',i,abs(l-l_old)/l_old,l,toc);
     tic
@@ -364,5 +339,5 @@ for i = 1 : 100
 end
 fprintf('\n');
 k = l;
-toc
+toc(xx)
 end

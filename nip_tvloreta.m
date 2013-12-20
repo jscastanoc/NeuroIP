@@ -8,12 +8,14 @@ Nt = size(y,2);
 Np = size(Ur,2);
 
 
-aff = nip_fuzzy_sources(cortex,4,struct('dataset','montreal','save',true));
+aff = nip_fuzzy_sources(cortex,3.5,struct('dataset','montreal','save',true));
 
 finalD =[];
 for i = 1:Np
-    %     D(:,i) = nip_lcmv(y_proj(:,i),L);
-    D(:,i) = nip_sflex(y_proj(:,i),L,basis, 60);
+    %     D(:,i) = nip_lcmv(y_proj(:,i),L);B = nip_blobnorm(B);
+        % Options for the inversion
+    reg_par = 150;
+    [D(:,i), ~] = nip_sflex(y_proj(:,i), L, nip_blobnorm(basis), 'regpar', reg_par,'optimgof',true,'gof',.9);
     
     if isempty(find(D(:,i)))
         D(:,i) = [];

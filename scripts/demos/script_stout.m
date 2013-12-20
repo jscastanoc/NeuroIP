@@ -1,109 +1,157 @@
-clc, close all, clear;
+% Script BASIC
+clear; close all; clc;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Add data/ and external libraries to the path%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-rng('default')
-rng('shuffle');
+% External libraries needed for STOUT:
+% LTFAT
 nip_init();
-ltfatstart; % Init Time frequency toolbox
-warning off
 
-load clab_example
-load clab_10_10;
-clab = clab_10_10;
-% data_name = 'icbm152b_sym';
-data_name = 'montreal';
-sa = prepare_sourceanalysis(clab, data_name);
+% ltfatstart; % Only need to be done once per matlab session
 
-temp = sa.V_cortex_coarse;
-L = nip_translf(temp); % Leadfield matrix
-L = L(find(ismember(clab_example,clab)),:);
-clear temp
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simulated Brain Activity %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Forward problem data.
+load(strcat('data/sa_montreal.mat'))
+
+cfg.L = nip_translf(sa.V_cortex_coarse);
 cfg.cortex = sa.cortex_coarse;
-cfg.L = L;
-cfg.fs = 100; % Sample frequency (Hz)
-cfg.t = 0:1/cfg.fs:1.5; % Time vector (seconds)
+cfg.fs = 120; % Sample frequency
+cfg.t = 0:1/cfg.fs:1; % Time vector
+
+% Crea una estructura (model) con los datos cargados y declarados arriba
 model = nip_create_model(cfg);
-clear L sa cfg;
+clear cfg L cortex_mesh eeg_std head elec
 
+%% Generate time series for the active dipoles
 
-% Generation of the Morlet wavelet (used for the time courses of the active
-% dipoles
-phase_shift = [0.5 1.5] ; % Phase shift for the sources (in seconds)
+ % Phase shift for the sources (in seconds)
+phase_shift = [0.3 0.6];
+
+% Get number of active dipoles
 Nact = length(phase_shift);
-fc_wl = 5; % Central frequency for the wavelet
+
+% Central frequency for the wavelets
+fc_wl = [7 12]; 
+
+% Generate time series
 for i = 1:Nact
-    f0 = fc_wl;
+    f0 = fc_wl(i);
     
     % Normalization terms for the wavelet
     sigma_f = f0/7;
     sigma_t = 1/(2*pi*sigma_f);
     
     % "source" contains the time courses of active sources
-    source(i,:) =  real(exp(2*1i*pi*f0*model.t).*...
+    act(i,:) =  real(exp(2*1i*pi*f0*model.t).*...
         exp((-(model.t-phase_shift(i)).^2)/(2*sigma_t^2)));
 end
-source_act = source;
-clear source;
-
-% Simulation of the EEG (Ntrial Averaged)
-Ntrials = 50;
-snr_meas = 10; % SNR at sensor level
-snr_bio = 0; % SNR at source level
-Nspurious = 200; % Number of active "spurious" dipoles
-[model.y, J_clean, active] = nip_simtrials(model.L, model.cortex.vc, ...
-    source_act, model.t, Nspurious , Ntrials, snr_meas, snr_bio);
 
 
-model.L = nip_depthcomp(model.L,0.2); % Depth bias compensation for the lead field matrix
+% Simulate 2 active dipoles
+% [J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
+[J, ~] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  ones(size(act,1),3), model.t, struct('sample_all',0));
 
-% Construction of the spatial basis functions
-nbasis = size(model.L,2)/3;
-iter_basis = [1]; % Width of the spatial basis functions
-basis = [];
-n = 1;
-group = [];
-for i = iter_basis
-    fuzzy = nip_fuzzy_sources(model.cortex,i);
-    basisn = fuzzy(:,randi([1,model.Nd/3],nbasis,1));
-    basisn = basisn/norm(basisn(:),1);
-    basis{n} = basisn;
-    group = [group n*ones(1,nbasis)];
-    basis{n} = nip_blobnorm(basis{n},group,struct('norm',1,'norm_group',false)); % Normalization of the spatial basis functions
-    n = n+1;
+
+% Simulate "smooth activity" (simulation is spatial low pass filtered
+fuzzy = nip_fuzzy_sources(model.cortex,1.5);
+index = (1:3:model.Nd);
+
+for i = 0:2
+    J(index+i,:) = fuzzy*J(index+i,:);
 end
+% J contains the final simulated activity
 
 
-options.iter = 50; % Max number of iteration
-options.spatial_reg = 0.9;
-options.temp_reg = 0.2;
-options.tol = 1e-2;
-[J_rec,~] = nip_sflex_tfmxne(model.y,model.L,basis{1},options);
+% Obtain pseudo EEG corresponding to the simulation
+clean_y = model.L*J;
+
+% Add noise at sensor level
+snr = 10;
+model.y = nip_addnoise(clean_y, snr);
+
+transM = (1+(1/model.Nc))*eye(model.Nc)-(1/model.Nc)*ones(model.Nc,model.Nc);
+
+model.y = transM*model.y;
+model.L = transM*model.L;
+
+% Depth compensation
+depth = 'none'; % it can be none, Lnorm or sLORETA-based depth compensation
+switch depth
+    case 'none'
+        L = model.L;
+        Winv = [];
+    case 'Lnorm'
+        gamma = 0.4; % How strong the depth compensation is?
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+        Winv = extras.Winv;
+    case 'sLORETA'
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth));
+        Winv = extras.Winv;
+end
+clear extras;
+
+%% SOLUTION %%
 
 
-%%%%%%%%%%%%%%%%%
-% Visualization %
-%%%%%%%%%%%%%%%%%
-% Simulation - Temporal
+sigma = 1; % Width of the gaussian bells or cortical blobs used as spatial dictionary
+
+% This function can be used to create spatial dictionaries using a forward
+% model taking into account only the cortex surface (model.cortex has the
+% 3d graph representing the cortical surface)
+B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
+
+% Normalize the spatial basis functions
+B = nip_blobnorm(B,'norm',2);
+
+
+
+% Options for the inversion
+% The ratio between spatial_reg and temp_reg depends on the snr of the EEG
+% However, in general a ratio of 1:300 should work ok.
+spatial_reg = 250; % Sparsity in the spatial domain
+temp_reg =  1; % Sparsity in the time-frequency domain
+
+% Set regularization parameters to get an ideal goodness of fit
+gof = 1 - norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
+
+a = 10;  %  Time shift for the Short Time Fourier Transform (STFT).
+m = 100; %Frequency bins for the STFT.
+lipschitz = 1e5;
+% By setting 'optimgof' to true, the regularization parameters will be
+% modified to get the desired gof. If false, then the user-select reg.
+% parameters are used for the solution
+[J_est, extras] = nip_stout(model.y, L, B,'optimgof',true,...
+    'sreg',spatial_reg,'treg',temp_reg,'gof', 1-gof, 'a',a ,'m',m,...
+    'lipschitz', lipschitz,'Winv',Winv);
+
+
+%% Visualization %%
+%%% Simulation
+%Temporal
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-plot(model.t,J_clean')
+plot(model.t,J')
 xlabel('Time')
 ylabel('Amplitude')
 
-% Simulation - Spatial
+% Spatial
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_clean.^2,2)), struct('axes',gca));
-hold on
-scatter3(model.cortex.vc(active,1),model.cortex.vc(active,2),model.cortex.vc(active,3),'ok','filled');
+nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca)); 
 
 
-%%% Reconstruction - Temporal
+
+%%% Reconstruction %%%
+%Temporal
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-plot(model.t,J_rec')
+plot(model.t,J_est')
 xlabel('Time')
 ylabel('Amplitude')
 
-% Reconstruction - Spatial
+% Spatial
 figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_rec.^2,2)), struct('axes',gca));
-hold on
-h = scatter3(model.cortex.vc(active,1),model.cortex.vc(active,2),model.cortex.vc(active,3),'ok','filled');
+nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca)); 
+
