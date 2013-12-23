@@ -73,5 +73,5 @@ er(5) = nip_error_tai(y,L,Jrecbckp);
 er(6) = out.sai;
 er(7) = out.spec;
 er(8) = out.sens;
-out = nip_calc_error(y,L,J_sim,Jrecbckp);
+out = nip_calc_error(y,L,Jclean,Jrecbckp);
 er(9) = out.rmse;

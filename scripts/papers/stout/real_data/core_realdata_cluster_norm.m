@@ -47,6 +47,22 @@ model.y = model.y(find(ismember(clab,sa.clab_electrodes)),:);
 clear L sa cfg;
 
 
+depth = 'Lnorm'; % it can be none, Lnorm or sLORETA-based depth compensation
+switch depth
+    case 'none'
+        L = model.L;
+        Winv = [];
+    case 'Lnorm'
+        gamma = 0.7; % How strong the depth compensation is?
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
+        Winv = extras.Winv;
+    case 'sLORETA'
+        [L, extras] = nip_depthcomp(model.L,struct('type',depth));
+        Winv = extras.Winv;
+end
+clear extras;
+model.L = L;
+
 transM = (1+(1/model.Nc))*eye(model.Nc)-(1/model.Nc)*ones(model.Nc,model.Nc);
 
 model.y = transM*model.y;
@@ -68,7 +84,7 @@ if sum(ismember(methods,{'STOUT','S-FLEX'}))
         n = n+1;
     end
     basis{1} = basis{1}/sum(basis{1}(:));
-
+    
 end
 
 
@@ -92,11 +108,32 @@ switch methods
         [J_rec,~] = nip_tfmxne_port(model.y,model.L,options);
         
     case 'STOUT'
-        options.iter = 500;
-        options.spatial_reg =70;
-        options.temp_reg = 0.01;
-        options.tol = 1e-2;
-        [J_rec,~] = nip_stout(model.y,model.L,basis{1},options);
+        sigma = 1; % Width of the gaussian bells or cortical blobs used as spatial dictionary
+        
+        % This function can be used to create spatial dictionaries using a forward
+        % model taking into account only the cortex surface (model.cortex has the
+        % 3d graph representing the cortical surface)
+        B = nip_fuzzy_sources(model.cortex, sigma, struct('save',1,'dataset','montreal'));
+        
+        % Normalize the spatial basis functions
+        B = nip_blobnorm(B,'norm',2);
+        
+                
+        % Options for the inversion
+        % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
+        % However, in general a ratio of 1:3 should work ok.
+        spatial_reg = 80 ; % Sparsity in the spatial domain
+        temp_reg =  10; % Sparsity in the time-frequency domain
+        gof = 0.85;
+        a = 10;  %  Time shift for the Short Time Fourier Transform (STFT).
+        m = 100; %Frequency bins for the STFT.
+        lipschitz = [];
+        % By setting 'optimgof' to true, the regularization parameters will be
+        % modified to get the desired gof. If false, then the user-select reg.
+        % parameters are used for the solution
+        [J_est, extras] = nip_stout(model.y, L, B,'optimgof',true,...
+            'sreg',spatial_reg,'treg',temp_reg,'gof', gof, 'a',a ,'m',m,...
+            'lipschitz', lipschitz,'Winv',Winv);
     otherwise
         error(strcat('Nah! ',methods{i},' is not available'))
 end

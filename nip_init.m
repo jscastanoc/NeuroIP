@@ -48,6 +48,7 @@ addpath(strcat(dir,'/external/L1_homotopy/'));
 addpath(strcat(dir,'/external/RWL1DF/'));
 addpath(strcat(dir,'/external/kkmeans/'));
 addpath(strcat(dir,'/external/pymex/'));
+addpath(strcat(dir,'/external/matgrid/'));
 % ltfatstart;
 % setup_path;
 end
