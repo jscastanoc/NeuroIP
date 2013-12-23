@@ -73,5 +73,6 @@ if ~isempty(options.Winv)
     end
     J_rec= nip_translf(J_rec)';
 end
+% J_rec= J_rec*norm(y,2)/norm(L*J_rec,2);
 extras =[];
 end

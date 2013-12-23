@@ -155,7 +155,7 @@ while true
 %             active_set = active_set0;
 %             break
 %         end
-        msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f \nDipoles~=0: %d \nRegPar S:%d T:%d \n'...
+        msg = sprintf('Iteration # %d, Stop: %d, Time per iter: %f \nDipoles~=0: %d \nRegPar S:%d T:%d \n'...
             ,i,error,eta,sum(full(active_set))/3, mu_lc*lipschitz_k, lambda_lc*lipschitz_k);
         fprintf([rev_line, msg]);
         rev_line = repmat(sprintf('\b'),1,length(msg));

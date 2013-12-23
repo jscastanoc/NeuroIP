@@ -37,7 +37,7 @@ switch varargin{1}.type
             norm_term = sqrt((norm(L(:,i),2)^2+ ...
                 norm(L(:,i+1),2)^2 + norm(L(:,i+2),2)^2)^gamma);
             Lcomp(:,i:i+2) = L(:,i:i+2)/norm_term;
-            Winv(i:i+2) = norm_term;
+            Winv(i:i+2) = 1/norm_term;
         end
         aux = Winv;
         clear Winv;

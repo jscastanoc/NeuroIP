@@ -113,7 +113,7 @@ B = nip_blobnorm(B,'norm',2);
 % Options for the inversion
 % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
 % However, in general a ratio of 1:3 should work ok.
-spatial_reg = 5; % Sparsity in the spatial domain
+spatial_reg = 5 ; % Sparsity in the spatial domain
 temp_reg =  1; % Sparsity in the time-frequency domain
 
 % Set regularization parameters to get an ideal goodness of fit
@@ -129,7 +129,7 @@ lipschitz = [];
     'sreg',spatial_reg,'treg',temp_reg,'gof', gof, 'a',a ,'m',m,...
     'lipschitz', lipschitz,'Winv',Winv);
 
-resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
+resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro')
 
 %% Visualization %%
 %%% Simulation
