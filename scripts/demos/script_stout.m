@@ -6,7 +6,7 @@ clear; close all; clc;
 
 % External libraries needed for STOUT:
 % LTFAT
-nip_init();
+% nip_init();
 
 % ltfatstart; % Only need to be done once per matlab session
 
@@ -80,13 +80,13 @@ model.y = transM*model.y;
 model.L = transM*model.L;
 
 % Depth compensation
-depth = 'none'; % it can be none, Lnorm or sLORETA-based depth compensation
+depth = 'Lnorm'; % it can be none, Lnorm or sLORETA-based depth compensation
 switch depth
     case 'none'
         L = model.L;
         Winv = [];
     case 'Lnorm'
-        gamma = 0.4; % How strong the depth compensation is?
+        gamma = 0.7; % How strong the depth compensation is?
         [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
         Winv = extras.Winv;
     case 'sLORETA'
@@ -112,23 +112,24 @@ B = nip_blobnorm(B,'norm',2);
 
 % Options for the inversion
 % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
-% However, in general a ratio of 1:300 should work ok.
-spatial_reg = 250; % Sparsity in the spatial domain
+% However, in general a ratio of 1:3 should work ok.
+spatial_reg = 5; % Sparsity in the spatial domain
 temp_reg =  1; % Sparsity in the time-frequency domain
 
 % Set regularization parameters to get an ideal goodness of fit
-gof = 1 - norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
+gof = norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
 
 a = 10;  %  Time shift for the Short Time Fourier Transform (STFT).
 m = 100; %Frequency bins for the STFT.
-lipschitz = 1e5;
+lipschitz = [];
 % By setting 'optimgof' to true, the regularization parameters will be
 % modified to get the desired gof. If false, then the user-select reg.
 % parameters are used for the solution
 [J_est, extras] = nip_stout(model.y, L, B,'optimgof',true,...
-    'sreg',spatial_reg,'treg',temp_reg,'gof', 1-gof, 'a',a ,'m',m,...
+    'sreg',spatial_reg,'treg',temp_reg,'gof', gof, 'a',a ,'m',m,...
     'lipschitz', lipschitz,'Winv',Winv);
 
+resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
 
 %% Visualization %%
 %%% Simulation

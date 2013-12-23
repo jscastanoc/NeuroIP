@@ -40,7 +40,7 @@ def_a = 8;
 def_m = 112;
 def_sreg = 80;
 def_treg= 1;
-def_maxiter = 10;
+def_maxiter = 100;
 def_tol = 1e-2;
 def_gof = 0.3;
 def_lipschitz = [];
@@ -123,7 +123,7 @@ while true
      active_set = logical(sparse(1,Nd));
     Y_time_as = [];
     Y_as = [];
-    for i = 1:100
+    for i = 1:200
         tic;        
         
         Z_0 = Z;   
@@ -138,24 +138,25 @@ while true
         [Z, active_set_l21] = prox_l21(Z,mu_lc,3);
         active_set = active_set_l1;
         active_set(find(active_set_l1)) = active_set_l21;
+%         active_set = active_set_l1 & active_set_l21;
         
         error_0 = error;
         if norm(active_set - active_set0) == 0
-            error = norm(Z-Z_0)/norm(Z_0);
+            error = norm(abs(Z-Z_0))/norm(abs(Z_0));
         else
             error = inf;
         end
 
         
-        stop = ((sum(full(active_set)) > sum(full(active_set0))) && i > 1) ;
-        if stop
-            disp('Converged')
-            Z = Z_0;
-            active_set = active_set0;
-            break
-        end
+%         stop = ((sum(full(active_set)) > sum(full(active_set0))) && i > 1) ;
+%         if stop
+%             disp('Converged')
+%             Z = Z_0;
+%             active_set = active_set0;
+%             break
+%         end
         msg = sprintf('Iteration # %d, Stop: %d, Elapsed time: %f \nDipoles~=0: %d \nRegPar S:%d T:%d \n'...
-            ,i,error,eta,sum(full(active_set))/3, mu_lc, lambda_lc);
+            ,i,error,eta,sum(full(active_set))/3, mu_lc*lipschitz_k, lambda_lc*lipschitz_k);
         fprintf([rev_line, msg]);
         rev_line = repmat(sprintf('\b'),1,length(msg));
         if i < options.maxiter 
@@ -179,7 +180,7 @@ while true
             temp = flipdim(temp,2);            
             temp = flipud(idgtreal(temp,'gauss',a,M))';
             Y_time_as = sparse(Nd,size(temp,2));
-            Y_old = Y_time_as;
+%             Y_old = Y_time_as;
             Y_time_as(find(Y_as),:) = temp;
             
             % Residual
@@ -210,20 +211,22 @@ while true
     
     
     resnorm = norm(y-L_or*Jf, 'fro')/norm(y, 'fro');
-    fprintf('\nGOF = %8.5e\n', 1 - resnorm);
+    fprintf('\nGOF = %8.5e\n',resnorm);
     
-    if gof_0 < resnorm;
+    if resnorm >=1
         J_rec = Jf_0;
     else
         Jf_0 = Jf;
         J_rec = Jf;
     end
+%     if nn >= options.maxiter || resnorm < options.gof...
+%             || ~options.optimgof || gof_0 < resnorm
     if nn >= options.maxiter || resnorm < options.gof...
-            || ~options.optimgof || gof_0 < resnorm
+            || ~options.optimgof  || resnorm >=1
         break;
     else
-        mu_lc = 0.85*mu_lc;
-        lambda_lc = 0.85*lambda_lc;
+        mu_lc = 0.8*mu_lc;
+        lambda_lc = 0.8*lambda_lc;
     end
     gof_0 = resnorm;
     nn = nn+1;
@@ -297,8 +300,8 @@ if n_orient>1
     active_set = reshape(active_set',n_orient,[]);
     active_set = active_set(:)';
 end
+Y = Y(find(active_set),:);
 
-Y = Y(active_set,:);
 if length(Y) > 0
     for i = 1:n_orient
         Y(i:n_orient:size(Y,1),:) = Y(i:n_orient:size(Y,1),:).*shrink;
@@ -321,8 +324,8 @@ fprintf('Lipschitz constant estimation: \n')
 rev_line = '';
 xx = tic;
 for i = 1 : 100
-    msg = sprintf('Iteration = %d, Diff: %d, Lipschitz Constant: %d\nTime per iteration %d ',i,abs(l-l_old)/l_old,l,toc);
     tic
+    msg = sprintf('Iteration = %d, Diff: %d, Lipschitz Constant: %d\nTime per iteration %d ',i,abs(l-l_old)/l_old,l,toc);
     fprintf([rev_line, msg]);
     rev_line = repmat(sprintf('\b'),1,length(msg));
     l_old = l;
