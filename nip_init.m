@@ -29,6 +29,7 @@ addpath(strcat(dir,'/external/kkmeans/'));
 addpath(strcat(dir,'/external/pymex/'));
 
 dir = '/mnt/data/Master_Results';
+% dir = 'd:/Master_Results';
 addpath(strcat(dir,'/external/toolbox_graph'));
 addpath(strcat(dir,'/external/toolbox_graph/toolbox'));
 addpath(strcat(dir,'/external/fieldtrip'));

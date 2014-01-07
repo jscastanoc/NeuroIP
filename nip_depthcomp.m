@@ -36,24 +36,18 @@ switch varargin{1}.type
         for i = index
             norm_term = sqrt((norm(L(:,i),2)^2+ ...
                 norm(L(:,i+1),2)^2 + norm(L(:,i+2),2)^2)^gamma);
-            Lcomp(:,i:i+2) = L(:,i:i+2)/norm_term;
             Winv(i:i+2) = 1/norm_term;
         end
-        aux = Winv;
-        clear Winv;
-        for i =0:2;
-            Winv(:,:,i+1) = diag(aux(index+i));
-        end
-%         Winv = sparse(Winv);
+        Winv = spdiags(Winv', 0, Nd, Nd);
+        Winv = Winv / norm(Winv, 'fro');
+        Lcomp = full(L*Winv);
     case 'sLORETA'
         Lsloreta = nip_translf(L);
-        Winv = full(sloreta_invweights(Lsloreta));
-        Winv = cat(3,Winv(1:end/3,1:end/3),Winv(end/3 +1:2*end/3,end/3 +1:2*end/3),Winv(2*end/3 +1 :end,2*end/3 +1:end));
-        for i = 1:3
-            Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
-        end
-        Lcomp = nip_translf(Lsloreta);
-        
+        Winv = sloreta_invweights(Lsloreta);
+        inds = reshape(reshape(1:Nd, Nd/3, 3)', [], 1);
+        Winv = Winv(inds, inds);
+        Winv = Winv / norm(Winv, 'fro');
+        Lcomp = full(L*Winv);      
 end
 if nargout == 2
     extras.Winv = Winv;

@@ -42,9 +42,9 @@ def_sreg = 80;
 def_treg= 1;
 def_maxiter = 100;
 def_tol = 1e-2;
-def_gof = 0.3;
+def_resnorm = 0.3;
 def_lipschitz = [];
-def_optimgof = false;
+def_optimres = false;
 def_Winv = [];
 
 addParamValue(p,'a',def_a);
@@ -53,9 +53,9 @@ addParamValue(p,'sreg',def_sreg);
 addParamValue(p,'treg',def_treg);
 addParamValue(p,'maxiter',def_maxiter);
 addParamValue(p,'tol',def_tol);
-addParamValue(p,'gof',def_gof);
+addParamValue(p,'resnorm',def_resnorm);
 addParamValue(p,'lipschitz',def_lipschitz);
-addParamValue(p,'optimgof',def_optimgof);
+addParamValue(p,'optimres',def_optimres);
 addParamValue(p,'Winv',def_Winv)
 
 parse(p,varargin{:})
@@ -111,7 +111,7 @@ rescum = [];
 
 temp =  reshape(full(Z)',K,T,[]);
 error = inf;
-gof_0 = inf;
+res_0 = inf;
 nn = 1;
 while true
     rev_line = '';
@@ -211,7 +211,7 @@ while true
     
     
     resnorm = norm(y-L_or*Jf, 'fro')/norm(y, 'fro');
-    fprintf('\nGOF = %8.5e\n',resnorm);
+    fprintf('\nRESNORM = %8.5e\n',resnorm);
     
     if resnorm >=1
         J_rec = Jf_0;
@@ -221,14 +221,14 @@ while true
     end
 %     if nn >= options.maxiter || resnorm < options.gof...
 %             || ~options.optimgof || gof_0 < resnorm
-    if nn >= options.maxiter || resnorm < options.gof...
-            || ~options.optimgof  || resnorm >=1
+    if nn >= options.maxiter || resnorm < options.resnorm...
+            || ~options.optimres || resnorm >=1
         break;
     else
         mu_lc = 0.8*mu_lc;
         lambda_lc = 0.8*lambda_lc;
     end
-    gof_0 = resnorm;
+    res_0 = resnorm;
     nn = nn+1;
 end
 if ~isempty(options.Winv)
@@ -239,7 +239,7 @@ if ~isempty(options.Winv)
     end
     J_rec= nip_translf(J_rec)';
 end
-extras = [];
+extras.active_set = active_set;
 end
 
 % function sm =  safe_max_abs(A, ia)

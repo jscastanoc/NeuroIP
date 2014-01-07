@@ -24,8 +24,7 @@ function [J_rec extras] = nip_stout(y,L,B,varargin)
 
 p = inputParser;
 
-def_a = 8;
-def_m = 112;
+
 def_sreg = 80;
 def_treg= 1;
 def_maxiter = 10;
@@ -34,9 +33,11 @@ def_resnorm = 0.3;
 def_lipschitz = [];
 def_optimres = false;
 def_Winv = [];
+def_wsize = double(128.0);
+def_tstep = double(10.0);
 
-addParamValue(p,'a',def_a);
-addParamValue(p,'m',def_m);
+addParamValue(p,'tstep',def_tstep);
+addParamValue(p,'wsize',def_wsize);
 addParamValue(p,'sreg',def_sreg);
 addParamValue(p,'treg',def_treg);
 addParamValue(p,'maxiter',def_maxiter);
@@ -54,7 +55,7 @@ for i = 1:3
     Lnew(:,:,i) = Ltemp(:,:,i)*B;
 end
 Lnew = nip_translf(Lnew);
-[J_r,extras] = nip_tfmxne_port(y,Lnew,varargin{:}, 'Winv', []);
+[J_r,extras] = nip_tfmxne_python(y,Lnew,varargin{:}, 'Winv', []);
 J_rect = nip_translf(J_r');
 J_rect = permute(J_rect,[2 1 3]);
 for i = 1:3
@@ -71,6 +72,5 @@ if ~isempty(options.Winv)
     J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
     J_rec = nip_translf(J_rec)';
 end
-% J_rec= J_rec*norm(y,2)/norm(L*J_rec,2);
-% extras =[];
+
 end
