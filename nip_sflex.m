@@ -20,13 +20,13 @@ NDUM = 3;
 
 p = inputParser;
 def_maxiter = 10;
-def_gof = 0.5;
+def_resnorm = 0.5;
 def_regpar = 100;
-def_optimgof= false;
+def_optimres = false;
 addParamValue(p,'maxiter',def_maxiter);
-addParamValue(p,'gof',def_gof);
+addParamValue(p,'resnorm',def_resnorm);
 addParamValue(p,'regpar',def_regpar);
-addParamValue(p,'optimgof',def_optimgof);
+addParamValue(p,'optimres',def_optimgof);
 
 parse(p,varargin{:})
 options = p.Results;
