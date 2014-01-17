@@ -1,4 +1,4 @@
-function [J_est, extras] = nip_sflex(y, L, basis, varargin)
+function [J_rec, extras] = nip_sflex(y, L, basis, varargin)
 %  [J_est, extras] = nip_sflex(y, L, basis, reg_par)
 % Implements "Large-scale EEG/MEG source localization with spatial
 % flexibility." by Haufe et al 2011
@@ -17,16 +17,20 @@ function [J_est, extras] = nip_sflex(y, L, basis, varargin)
 % Juan S. Castano C.
 % 13 June 2013
 NDUM = 3;
+yor = y;
+Lor = L;
 
 p = inputParser;
-def_maxiter = 10;
+def_maxiter = 50;
 def_resnorm = 0.5;
 def_regpar = 100;
 def_optimres = false;
+def_Winv = [];
 addParamValue(p,'maxiter',def_maxiter);
 addParamValue(p,'resnorm',def_resnorm);
 addParamValue(p,'regpar',def_regpar);
-addParamValue(p,'optimres',def_optimgof);
+addParamValue(p,'optimres',def_optimres);
+addParamValue(p,'Winv',def_Winv);
 
 parse(p,varargin{:})
 options = p.Results;
@@ -75,18 +79,23 @@ while true
         xxf(index+i,:) = xx(1+i:3:end,:)';
         xxf(index+i,:) = basis*xxf(index+i,:); % J simulado FINAL
     end
-    resnorm = norm(y-L*xxf, 'fro')/norm(y, 'fro');
+    J_rec = xxf*(norm(yor,'fro')/norm(Lor*xxf,'fro'));    
+    resnorm = norm(yor-Lor*J_rec, 'fro')/norm(yor, 'fro');
     fprintf('GOF = %8.5e\n', resnorm);
     
-    if iter > options.maxiter || resnorm < options.gof || ~options.optimgof
+    if iter > options.maxiter || resnorm < options.resnorm || ~options.optimres
         break;
     else
         options.regpar = 0.75*options.regpar;
     end
 end
 
-
-J_est = xxf;
+if ~isempty(options.Winv)
+    J_est = nip_translf(J_rec');
+    siJ = size(J_est);
+    J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
+    J_rec = nip_translf(J_rec)';
+end
 extras =[];
 
     function xfo = xforth(x)

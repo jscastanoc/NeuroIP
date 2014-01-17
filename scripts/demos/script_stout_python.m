@@ -125,9 +125,11 @@ lipschitz = [];
 % By setting 'optimgof' to true, the regularization parameters will be
 % modified to get the desired gof. If false, then the user-select reg.
 % parameters are used for the solution
-[J_est, extras] = nip_stout_python(model.y, L, B,'optimres',false,...
+[J_est, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
     'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
     'lipschitz', lipschitz,'Winv',Winv);
+% [J_est, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',100,'resnorm', resnorm,'Winv',Winv);
+
 
 resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro')
 

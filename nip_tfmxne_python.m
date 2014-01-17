@@ -74,7 +74,7 @@ for i = 1:100 % Adjust the regularization parameters 100 times max.
     fprintf([rev_line, msg]);    
     rev_line = repmat(sprintf('\b'),1,length(msg));
     
-    if (resnorm < options.resnorm+0.05 || ~options.optimres)
+    if (resnorm < options.resnorm || ~options.optimres)
         break;
     else
         sreg = 0.7*sreg;

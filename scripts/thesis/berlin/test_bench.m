@@ -24,7 +24,7 @@ clear L sa;
 Nd = size(model.cortex.vc,1);
 
 % Ntrials = [5 20 50 100 250];
-Ntrials = [250];
+Ntrials = [100];
 % act_sources = [1 3 5];
 Nact = [1];
 % Ntrials = [210];
@@ -70,9 +70,12 @@ for l = 1:numel(depth)
                     model.Nt = size(y,2);
                     model.t = 0:1/fs:model.Nt/fs;
                     
+                    resnorm = norm(model.y - model.L*Jclean, 'fro')/norm(model.y, 'fro')
+                    
+                    
                     jobs(jobs_c) = mgsub({'J_rec', 'time', 'er', 'extra'},'thesis_core', ...
                         {Nexp,Nact,Ntrials,methods,dir_base,dir_results,...
-                        dir_error,snr_bio,model, Jclean, actidx,depth{l}}, 'qsub_opts', '-l h_vmem=6G');
+                        dir_error,snr_bio,model, Jclean, actidx,depth{l},resnorm}, 'qsub_opts', '-l h_vmem=6G');
                     cur_jobs = [cur_jobs jobs(jobs_c)];
                     jobs_c = jobs_c + 1;
                     
