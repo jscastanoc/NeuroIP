@@ -1,5 +1,5 @@
 function [J_rec, extras, invT] = nip_loreta(y, L, varargin)
-% [J_rec, extras] = nip_loreta(y, L, Q) 
+% [J_rec, extras] = nip_loreta(y, L, varargin) 
 % Calculate the inverse problem solution using the minimum norm approach
 % Input:
 %       y -> NcxNt. Matrix containing the data,
