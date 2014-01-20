@@ -23,10 +23,10 @@ load_data;
 clear L sa;
 Nd = size(model.cortex.vc,1);
 
-% Ntrials = [5 20 50 100 250];
-Ntrials = [100];
+Ntrials = [5 20 50 100 250];
+% Ntrials = [100];
 % act_sources = [1 3 5];
-Nact = [1];
+Nact = [1 3 5];
 % Ntrials = [210];
 snr_meas = 0;
 snr_bio = -5;
@@ -38,19 +38,23 @@ snr = [];
 % cortex = model.cortex;
 % clear model;
 
-Nexp = [1:50];
+Nexp = [1:20];
 
 jobs_c = 1;
 % methods = {'LOR','TF-MxNE','STOUT','S-FLEX','KAL','IRA3','IRA5','LOR_PROJ'};
-methods = {'LOR','STOUT'};
+methods = {'S-FLEX','STOUT','TF-MxNE'};
 dir_base = '/home/jscastanoc/simulated/montreal_sampleall_false/';
-dir_results = '/home/jscastanoc/results/montreal_sampleall_false/depth/';
-dir_error = '/home/jscastanoc/error/montreal_sampleall_false/depth/';
+dir_results = '/home/jscastanoc/results/montreal_sampleall_false/';
+dir_error = '/home/jscastanoc/error/montreal_sampleall_false/';
+% dir_base = '/home/jscastanoc/simulated/montreal_sampleall_false/';
+% dir_results = '/home/jscastanoc/results/montreal_sampleall_false/depth/';
+% dir_error = '/home/jscastanoc/error/montreal_sampleall_false/depth/';
 % dir_base = '/mnt/data/Master_Results/Datasets/simulated/montreal_sampleall_false/';
 % dir_results = '/mnt/data/results/montreal_sampleall_false/';
 % dir_error = '/mnt/data/error/montreal_sampleall_false/';
 depth = {'none','sLORETA','Lnorm'};
-
+depth ={'Lnorm'};
+tic
 for l = 1:numel(depth)
     cur_jobs = [];
     copy_res = {};
@@ -74,8 +78,8 @@ for l = 1:numel(depth)
                     
                     
                     jobs(jobs_c) = mgsub({'J_rec', 'time', 'er', 'extra'},'thesis_core', ...
-                        {Nexp,Nact,Ntrials,methods,dir_base,dir_results,...
-                        dir_error,snr_bio,model, Jclean, actidx,depth{l},resnorm}, 'qsub_opts', '-l h_vmem=6G');
+                        {Nexp,Nact,Ntrials,method,dir_base,dir_results,...
+                        dir_error,snr_bio,model, Jclean, actidx,depth{l},resnorm}, 'qsub_opts', '-l h_vmem=5G');
                     cur_jobs = [cur_jobs jobs(jobs_c)];
                     jobs_c = jobs_c + 1;
                     
@@ -117,3 +121,4 @@ for l = 1:numel(depth)
     end
     mgclear(cur_jobs);
 end
+toc
