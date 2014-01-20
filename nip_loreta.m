@@ -17,7 +17,7 @@ function [J_rec, extras, invT] = nip_loreta(y, L, varargin)
 % jscastanoc@gmail.com
 % 26 Jan 2013
 
-Nd = size(L,2)
+Nd = size(L,2);
 p = inputParser;
 def_Q = speye(Nd);
 def_Winv = [];
@@ -40,7 +40,7 @@ tic
 gcv_fun = @(alpha) gcv(y,L,alpha, inv_Lap, iLAP_LT, eye_Nc);
 % options = optimset('Display','iter','tolX',1e-6);
 optionsopt = optimset('tolX',1e-6);
-alpha = fminsearch(gcv_fun, 0.5,optionsopt);
+alpha = fminsearch(gcv_fun, 0.5e0,optionsopt);
 
 % Solution
 invT = iLAP_LT/(L*iLAP_LT+abs(alpha)*eye_Nc);
@@ -53,7 +53,9 @@ if ~isempty(options.Winv)
     J_rec = nip_translf(J_rec)';
 end
 
+J_rec = J_rec*(norm(y,'fro')/norm(L*J_rec,'fro'));
 extras.regpar = alpha^2;
+
 fprintf('done! \nElapsed time: %.2d secs \n', toc)
 end
 
