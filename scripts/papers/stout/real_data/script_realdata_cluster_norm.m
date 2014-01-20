@@ -50,11 +50,6 @@ session_list = get_session_list(pwd);
 stim_target = [31:36 81:86 111:116];
 stim_nontarget = [11:16 61:66 91:96];
 
-
-
-
-
-
 % Conditions = 3;
 Conditions = 2;
 
@@ -75,7 +70,7 @@ for c_meth = 1:numel(methods)
             epo_avg = proc_average(epo);
             dmy = proc_selectClasses(epo_avg, 'Non-Target');
             jobs(jobs_c) =  mgsub({'J_rec', 'te'},'core_realdata_cluster_norm', ...
-                {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=6G');
+                {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=5G');
             cur_jobs = [cur_jobs jobs(jobs_c)];
             jobs_c = jobs_c + 1;
             dir = strcat('/home/jscastanoc/real_data_results/',session_list{ii});
