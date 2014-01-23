@@ -51,10 +51,10 @@ for i = 1:Nact
         exp((-(model.t-phase_shift(i)).^2)/(2*sigma_t^2)));
 end
 
-
-% Simulate 2 active dipoles
-% [J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
-[J, ~] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  ones(size(act,1),3), model.t, struct('sample_all',0));
+rng(1);
+% Simulate 1 active dipoles
+[J, actidx] = nip_simulate_activity(model.cortex.vc,[-30 20 30], act, randn(2,3), model.t,struct('sample_all',0));
+% [J, ~] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  ones(size(act,1),3), model.t, struct('sample_all',0));
 
 
 % Simulate "smooth activity" (simulation is spatial low pass filtered
@@ -71,13 +71,12 @@ end
 clean_y = model.L*J;
 
 % Add noise at sensor level
-snr = 10;
+snr = 8;
 model.y = nip_addnoise_bio(model.L,J,model.t,snr);
 
-transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
-
-model.y = transM*model.y;
-model.L = transM*model.L;
+% transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
+% model.y = transM*model.y;
+% model.L = transM*model.L;
 
 % Depth compensation
 depth = 'Lnorm'; % it can be none, Lnorm or sLORETA-based depth compensation
@@ -113,7 +112,7 @@ B = nip_blobnorm(B,'norm',2);
 % Options for the inversion
 % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
 % However, in general a ratio of 1:3 should work ok.
-spatial_reg = 80 ; % Sparsity in the spatial domain
+spatial_reg = 90 ; % Sparsity in the spatial domain
 temp_reg =  5; % Sparsity in the time-frequency domain
 
 % Set regularization parameters to get an ideal goodness of fit
@@ -122,16 +121,33 @@ resnorm = norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
 a = 8;  %  Time shift for the Short Time Fourier Transform (STFT).
 m = 64; %Frequency bins for the STFT.
 lipschitz = [];
-% By setting 'optimgof' to true, the regularization parameters will be
-% modified to get the desired gof. If false, then the user-select reg.
-% parameters are used for the solution
-[J_est, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
+% By setting 'optimres' to true, the regularization parameters will be
+% modified to get the desired resnorm. If false, then the user-select reg.
+
+
+[J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
     'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
     'lipschitz', lipschitz,'Winv',Winv);
-% [J_est, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',100,'resnorm', resnorm,'Winv',Winv);
+er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
 
 
-resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro')
+[J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',0.05,'resnorm', resnorm,'Winv',Winv);
+er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
+
+[J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
+    'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
+    'lipschitz', lipschitz,'Winv',Winv);
+er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
+
+
+J_est = J_estsflex;
+J_est = J_esttfmxne;
+J_est = J_eststout;
+
+% resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
+
+
+
 
 %% Visualization %%
 %%% Simulation

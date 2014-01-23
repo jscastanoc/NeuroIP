@@ -51,7 +51,7 @@ sreg = options.sreg;
 treg = options.treg;
 
 rev_line = '';
-for i = 1:10% Adjust the regularization parameters 100 times max.
+for i = 1:20% Adjust the regularization parameters 20 times max.
     clck = tic;
     out = tfmxne.tfmxne(y,L,sreg,treg,...
         options.wsize,options.tstep,options.maxiter,options.tol);
@@ -77,8 +77,8 @@ for i = 1:10% Adjust the regularization parameters 100 times max.
     if (resnorm < options.resnorm || ~options.optimres)
         break;
     else
-        sreg = 0.8*sreg;
-        treg = 0.5*treg;
+        sreg = 0.7*sreg;
+        treg = 0.7*treg;
     end
 end
 
@@ -88,5 +88,6 @@ if ~isempty(options.Winv)
     J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
     J_rec = nip_translf(J_rec)';
 end
+
 end
 

@@ -84,7 +84,7 @@ for c_meth = 1:numel(methods)
     for cc_res = cur_jobs
         or = strcat('/home/jscastanoc/svn_test/matgrid/jobs/',num2str(cc_res),'/mgjob_results.mat');
         dest = copy_res{aux};
-        movefile(or,dest);
+        % movefile(or,dest);
         load(or);
         J_rec = mgjob.results{1};
         time = mgjob.results{2};

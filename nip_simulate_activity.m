@@ -55,12 +55,21 @@ if isscalar(act_dip)
                 % This is done to make simulation only with superficial
                 % sources, USE ONLY FOR VISUALIZATION PURPOSES
             point = mean(dip_pos);
-            point(3) = point(3) - point(3)*0.2;
+%             point(3) = point(3) - point(3)*0.2;
+            point = [point(1) -2.5 5];
             dists = dist([dip_pos; point]' );
-            [~, idx] = sort(dists(end,:),'descend');
+            [~, idx] = sort(dists(end,:),'descend');            
             temp = 1.6;
             act_dip = randsample(floor(Nd/temp),act_dip);
             act_dip = idx(act_dip);
+            % load_data;
+%             J = zeros(3*Nd,1);
+%             for i = 1:3
+%                 J((act_dip-1)*3+i) = ones(length(act_dip),1);
+%             end
+%             nip_reconstruction3d(model.cortex, J, struct('colormap','gray','thres',0))
+%             hold on
+%             scatter3(0,-2.5,5,1000,'filled')
         end
 elseif ismatrix(act_dip)
     dists = dist([dip_pos; act_dip]' );

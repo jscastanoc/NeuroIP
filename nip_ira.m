@@ -1,5 +1,5 @@
-function [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
-% [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
+function [x, extra] = nip_ira(y, L, Q, Laplacian, Np, covmat_obs,par,varargin)
+% [x, extra] = nip_ira(y, L, Q, Laplacian, Np, covmat_obs,par)
 % Computes the iterative regularization algorithm to estimate brain
 % activity. See Documentation for further details.
 % Input:
@@ -22,6 +22,13 @@ function [x, extra] = nip_iterreg(y, L, Q, Laplacian, Np, covmat_obs,par)
 % Juan S. Castano C.
 % jscastanoc@gmail.com
 % 27 Jan 2013
+
+p = inputParser;
+def_Winv = [];
+addParamValue(p,'Winv',def_Winv);
+parse(p,varargin{:})
+options = p.Results;
+
 if nargin < 6
    covmat_obs = [];
    par = [];
@@ -40,9 +47,9 @@ eye_Nc = speye(Nc);
 WTW = Q;
 
 % Sensor noise covariance
-if isempty(covmat_obs) || nargin <6
+if isempty(covmat_obs) 
 	Sigma = eye_Nc;
-elseif nargin>=6
+else
 	Sigma = covmat_obs;
 end
 
@@ -78,7 +85,7 @@ g = @(wk_1) 1*wk_1;
 
 % Optimize lambda
 
-if nargin > 6 && ~isempty(par)
+if ~isempty(par)
     lambda = par(1);
     gamma =par(2) ;
 else
@@ -92,7 +99,7 @@ end
 Lambda_k = (1/lambda)*Q;
 Gamma_k = (1/gamma)*RTR_inv;
 
-[x, ~] = nip_loreta(y(:,1:2),L, Q);
+[x, ~] = nip_loreta(y(:,1:2),L, 'cov',Q,'Winv',options.Winv);
 wk = 0*randn(Np,1);
 % wk(1) = 0.9;
 w_par=[];
@@ -129,6 +136,16 @@ for k = 3:Nt
     eta = toc;
     etat = etat + eta;
 end
+
+if ~isempty(options.Winv)
+    J_est = nip_translf(x');
+    siJ = size(J_est);
+    J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
+    J_rec = nip_translf(J_rec)';
+end
+
+x = J_rec*(norm(y,'fro')/norm(L*J_rec,'fro'));
+
 extra.mpar = w_par;
 extra.regpar = [lambda gamma];
 end
