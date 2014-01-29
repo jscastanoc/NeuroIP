@@ -46,7 +46,7 @@ model.y = dmy.x';
 model.y = model.y(find(ismember(clab,sa.clab_electrodes)),:);
 clear L sa cfg;
 
-
+depth = 'Lnorm';
 switch depth
     case 'none'
         L = model.L;

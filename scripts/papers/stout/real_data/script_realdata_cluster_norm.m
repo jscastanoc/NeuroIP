@@ -6,7 +6,6 @@
 % 27 Aug 2013           %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 % Initialization and creation of the structures used in some functions
 close all; clc; clear
 
@@ -56,6 +55,7 @@ Conditions = 2;
 jobs_c = 1;
 % methods = {'LOR','TF-MxNE','S+T','S-FLEX'};
 methods = {'STOUT'};
+type = 'Non-Target';
 for c_meth = 1:numel(methods)
     
     copy_res = {};
@@ -70,11 +70,11 @@ for c_meth = 1:numel(methods)
             epo_avg = proc_average(epo);
             dmy = proc_selectClasses(epo_avg, 'Non-Target');
             jobs(jobs_c) =  mgsub({'J_rec', 'te'},'core_realdata_cluster_norm', ...
-                {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=5G');
+                {methods{c_meth}, dmy}, 'qsub_opts', '-l h_vmem=4G');
             cur_jobs = [cur_jobs jobs(jobs_c)];
             jobs_c = jobs_c + 1;
             dir = strcat('/home/jscastanoc/real_data_results/',session_list{ii});
-            file_name = strcat(dir,'/',methods{c_meth},'Cond',num2str(icond),'.mat');
+            file_name = strcat(dir,'/',methods{c_meth},'Cond',num2str(icond),type,'.mat');
             copy_res{end+1} = file_name;
         end
     end
@@ -83,8 +83,8 @@ for c_meth = 1:numel(methods)
     aux = 1;
     for cc_res = cur_jobs
         or = strcat('/home/jscastanoc/svn_test/matgrid/jobs/',num2str(cc_res),'/mgjob_results.mat');
-        dest = copy_res{aux};
-        movefile(or,dest);
+        dest = copy_res{aux}
+        % movefile(or,dest);
         load(or);
         J_rec = mgjob.results{1};
         time = mgjob.results{2};
