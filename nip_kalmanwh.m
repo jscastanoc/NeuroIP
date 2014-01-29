@@ -1,4 +1,4 @@
-function [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
+function [x, extras] = nip_kalmanwh(y, L, Laplacian,par, varargin)
 % [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
 % Computes the kalman filter estimation using a whitening to eliminate
 % spatial correlations (Presented in Galka et al. 2004). See Documentation
@@ -21,14 +21,19 @@ function [x, extras] = nip_kalmanwh(y, L, Laplacian,par)
 % Juan S. Castano C.
 % 17 Feb 2013
 
-if nargin <=3
+if isempty(par)
     aic_fun = @(par) aic(y,L,Laplacian,par);
     % options = optimset('Display','iter','tolX',1e-6);
     options = optimset('Display','iter','tolX',1e-4,'TolFun',1e-2);
     par = fminsearch(aic_fun,[0.9 0.001 0.001 1e-3 1e-4],options);
-elseif nargin == 4
-    par;
 end
+
+p = inputParser;
+def_Winv = [];
+addParamValue(p,'Winv',def_Winv);
+parse(p,varargin{:})
+options = p.Results;
+
 a = par(1:3);
 sigma = par(4);
 epsi = par(5);
@@ -48,7 +53,7 @@ Bkf = [a(2) 0   ; 0 0];
 Qv = zeros(Nc,2);
 covSigmaMat = [sigma^2 0; 0 0];
 
-[Jwth, ~] = nip_loreta(y(:,1:2),L, inv(Laplacian'*Laplacian));
+[Jwth, ~] = nip_loreta(y(:,1:2),L, 'cov',inv(Laplacian'*Laplacian),'Winv',options.Winv);
 Jwth = Laplacian*Jwth;
 P = 10*ones(Nd,1);
 Pwth_ap = zeros([2,2,Nd]);
@@ -87,7 +92,15 @@ for k = 3:Nt
     etat = etat + eta;
 end
 x = inv(Laplacian)*Jwth;
-% extras.P = Not implemented;
+
+if ~isempty(options.Winv)
+    J_est = nip_translf(x');
+    siJ = size(J_est);
+    J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
+    J_rec = nip_translf(J_rec)';
+end
+
+x = J_rec*(norm(y,'fro')/norm(L*J_rec,'fro'));
 extras.par = par;
 
 function val = aic(y, L, Laplacian,par)

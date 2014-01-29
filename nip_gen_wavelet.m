@@ -1,5 +1,7 @@
 function series = nip_gen_wavelet(f0,t,phase_shift)
-
+% series = nip_gen_wavelet(f0,t,phase_shift)
+% Generate real morley wavelet along vector time t with central frequency f0 and
+% phase shift phase_shit
 % Normalization terms for the wavelet
 sigma_f = f0/7;
 sigma_t = 1/(2*pi*sigma_f);

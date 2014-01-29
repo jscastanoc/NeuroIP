@@ -33,7 +33,7 @@ act = sin(2*pi*10*model.t); % Actividad a simular
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
-
+break
 % Depth compensation
 depth = 'Lnorm'; % it can be none, Lnorm or sLORETA-based depth compensation
 switch depth

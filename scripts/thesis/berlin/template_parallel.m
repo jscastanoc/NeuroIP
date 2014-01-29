@@ -11,23 +11,37 @@ Nact = [1];
 Ntrials = [250];
 
 % Ntrials = 250;
-methods = {'KAL','IRA3','IRA5','LOR_PROJ','LOR'};
+methods = {'KAL','IRA3','IRA5','LOR_PROJ','LOR','DOBERMAN'};
+methods = {'IRA3'}
 snr_bio = -5;
 dir_data = '/mnt/data/Master_Results/Datasets/simulated/montreal_sampleall_false/';
 dir_results ='/mnt/data/Master_Results/IRA/bin/montreal_sampleall_false/';
 dir_error = '/mnt/data/Master_Results/IRA/error/montreal_sampleall_false/';
-Nparallel = 3;
+Nparallel = 2;
 n = 0;
 sched = findResource('scheduler','configuration','local');
 job = createJob(sched);
 compute = false;
+depth = 'Lnorm';
 for i = Nexp
     for j = Nact
         for k = Ntrials
             for m = 1:numel(methods)
                 n = n+1;
-                
-                args = {i,j,k,methods(m),dir_data,dir_results,dir_error,snr_bio};
+                dir = strcat(dir_data,num2str(j),'/');
+                    file_name = strcat(dir,'Exp',num2str(i),'Ntrials',...
+                        num2str(k),'BioNoise',num2str(snr_bio),'.mat');
+                    load(file_name);
+                    load_data;
+                    model.fs = fs;
+                    model.y = y;
+                    model.Nt = size(y,2);
+                    model.t = 0:1/fs:model.Nt/fs;
+                    
+                    resnorm = norm(model.y - model.L*Jclean, 'fro')/norm(model.y, 'fro')
+
+                args = {i,j,k,methods{m},dir_data,dir_results,dir_error,snr_bio,...
+                    model,Jclean,actidx,depth,resnorm};
                 createTask(job, @thesis_core, 0,args);
                 if ((n >= Nparallel) || ((i == Nexp(end)) && ...
                         (j == Nact(end)) && (k == Ntrials(end)) && m == numel(methods)))

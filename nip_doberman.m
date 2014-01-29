@@ -1,6 +1,12 @@
-function [J_est, extras] = nip_tvloreta(y,t,L,basis,cortex)
+function [J_rec, extras] = nip_doberman(y,t,L,basis,cortex,varargin)
 
-% [J_est, extras] = nip_tvloreta(y,t,L,basis,cortex)
+% [J_est, extras] = nip_doberman(y,t,L,basis,cortex)
+p = inputParser;
+def_Winv = [];
+addParamValue(p,'Winv',def_Winv);
+parse(p,varargin{:})
+options = p.Results;
+
 
 [Nc,Nd] = size(L);
 Nt = size(y,2);
@@ -14,8 +20,8 @@ finalD =[];
 for i = 1:Np
     %     D(:,i) = nip_lcmv(y_proj(:,i),L);B = nip_blobnorm(B);
         % Options for the inversion
-    reg_par = 150;
-    [D(:,i), ~] = nip_sflex(y_proj(:,i), L, nip_blobnorm(basis), 'regpar', reg_par,'optimgof',true,'gof',.9);
+    reg_par = 1;
+    [D(:,i), ~] = nip_sflex(y_proj(:,i), L, nip_blobnorm(basis), 'regpar', reg_par,'optimres',true,'resnorm',.9,'Winv',options.Winv);
     
     if isempty(find(D(:,i)))
         D(:,i) = [];
@@ -91,9 +97,19 @@ for i = 1:size(Ur,2)
     end
     Q = sum(Q,2);
     
-    [J_est(:,i),~] = nip_loreta(y_proj(:,i),L,sparse(diag(Q)));
+    [J_est(:,i),~] = nip_loreta(y_proj(:,i),L,'cov',sparse(diag(Q)),'Winv',options.Winv);
 end
 
 J_est = J_est*Ur';
+
+if ~isempty(options.Winv)
+    J_est = nip_translf(J_est');
+    siJ = size(J_est);
+    J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
+    J_rec = nip_translf(J_rec)';
+end
+
+J_rec = J_rec*(norm(y,'fro')/norm(L*J_rec,'fro'));
+
 extras.D = D;
 extras.h = h;

@@ -15,8 +15,8 @@ function er = nip_all_errors(y,L,J_rec,Jclean,cortex,actidx)
 % 		er -> 1x9 vector with the following errors:
 %             1) EMD
 %             2) Max. Correlation
-%             3) Average distance between local maxima
-%             4) 3. weighted with the achieved correlation
+%             3) Average distance between local maxima X
+%             4) 3. weighted with the achieved correlation X
 %             5) Explained variance
 %             6) Spatial accuracy
 %             7) Specificity
