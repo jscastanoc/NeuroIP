@@ -15,8 +15,8 @@ p = inputParser;
 
 def_sreg = 80;
 def_treg= 1;
-def_maxiter = 100;
-def_tol = 1e-10;
+def_maxiter = 300;
+def_tol = 1e-6;
 def_resnorm = 0.3;
 def_lipschitz = [];
 def_optimres = false;
@@ -49,7 +49,7 @@ L = numpy.asarray(L);
 
 sreg = options.sreg;
 treg = options.treg;
-
+options.tol
 rev_line = '';
 for i = 1:20% Adjust the regularization parameters 20 times max.
     clck = tic;

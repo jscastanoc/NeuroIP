@@ -20,7 +20,7 @@ load(strcat('data/sa_montreal.mat'))
 
 cfg.L = nip_translf(sa.V_cortex_coarse);
 cfg.cortex = sa.cortex_coarse;
-cfg.fs = 120; % Sample frequency
+cfg.fs = 1; % Sample frequency
 cfg.t = 0:1/cfg.fs:1; % Time vector
 
 % Crea una estructura (model) con los datos cargados y declarados arriba

@@ -44,7 +44,7 @@ brainnoise = brainnoise/norm(brainnoise,'fro');
 sensornoise = randn(Nc,Nt);
 sensornoise = sensornoise/norm(sensornoise,'fro');
 
-beta = 0.6;
+beta = 0.5;
 noise = beta*brainnoise + (1-beta)*sensornoise;
 
 

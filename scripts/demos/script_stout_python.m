@@ -11,7 +11,7 @@ nip_init();
 % ltfatstart; % Only need to be done once per matlab session
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%Hannah
 % Simulated Brain Activity %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,7 +71,7 @@ end
 clean_y = model.L*J;
 
 % Add noise at sensor level
-snr = 8;
+snr = 0;
 model.y = nip_addnoise_bio(model.L,J,model.t,snr);
 
 % transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
@@ -113,7 +113,7 @@ B = nip_blobnorm(B,'norm',2);
 % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
 % However, in general a ratio of 1:3 should work ok.
 spatial_reg = 90 ; % Sparsity in the spatial domain
-temp_reg =  5; % Sparsity in the time-frequency domain
+temp_reg = 2; % Sparsity in the time-frequency domain
 
 % Set regularization parameters to get an ideal goodness of fit
 resnorm = norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
@@ -125,24 +125,24 @@ lipschitz = [];
 % modified to get the desired resnorm. If false, then the user-select reg.
 
 
-[J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
-    'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
-    'lipschitz', lipschitz,'Winv',Winv);
-er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
+% [J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
+%     'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
+%     'lipschitz', lipschitz,'Winv',Winv);
+% er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
 
 
-[J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',0.05,'resnorm', resnorm,'Winv',Winv);
-er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
-
+% [J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',0.1,'resnorm', resnorm,'Winv',Winv);
+% er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
+% 
 [J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
     'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
     'lipschitz', lipschitz,'Winv',Winv);
-er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
+% er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
 
 
-J_est = J_estsflex;
+% J_est = J_estsflex;
 J_est = J_esttfmxne;
-J_est = J_eststout;
+% J_est = J_eststout;
 
 % resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
 
