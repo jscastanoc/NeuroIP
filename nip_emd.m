@@ -17,6 +17,9 @@ Nt = size(Sol1,2);
 sig1 = sum(nip_energy(Sol1),2);
 sig2 = sum(nip_energy(Sol2),2);
 
+sig1 = sig1 / sum(sig1);
+sig2 = sig2 / sum(sig2);
+
 idx1 = find(sig1);
 idx2 = find(sig2);
 
