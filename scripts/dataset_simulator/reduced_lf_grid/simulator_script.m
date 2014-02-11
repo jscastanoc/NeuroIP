@@ -12,7 +12,7 @@ nip_init();
 % Load leadfield data (leadfield, electrode labels etc..)
 load_montreal_1010;
 
-cfg.cortex = sa.cortex_coarse;
+cfg.cortex.vc = sa.grid_coarse;
 cfg.L = L;
 cfg.fs = 120; % Sample frequency (Hz)
 cfg.t = 0:1/cfg.fs:1.5; % Time vector (seconds)
@@ -21,9 +21,9 @@ clear L sa;
 
 
 Ntrials = [5 20 50 100 250]; % Number of trials to simulate (results are averaged across trials)
-snr_meas = 2; % Signal to noise ratio at the sensor level
-snr_bio = [-8]; % Signal to noise ratio at source level
-Nspurious = 500; % Number of source with spurious activity in each simulation
+snr_meas = -5; % Signal to noise ratio at the sensor level
+snr_bio = [-5]; % Signal to noise ratio at source level
+Nspurious = 200; % Number of source with spurious activity in each simulation
 
 
 % Mean of the time shift of the wavelets (1 3 and 5 active sources)
@@ -43,7 +43,7 @@ options.snr_meas = snr_meas;
 sched = findResource('scheduler', 'configuration', 'local');
 % sched = parcluster();
 job = createJob(sched);
-dir_base = '/mnt/data/Master_Results/Datasets/simulated/montreal_sampleall_false/';
+dir_base = '/mnt/data/Master_Results/Datasets/simulated/montreal_grid_smoothed/';
 for l = 1:numel(phase_shift)
     options.phase_shift = phase_shift{l};
 %     parallel_core(model, dir_base, options);

@@ -2,7 +2,7 @@ function data_m = nip_energy(data)
 % function data_m = nip_energy(data)
 % Auxiliary function that returns the magnitude of each dipole vector.
 % Input:
-%       data -> 3Ndx1. Vector containing the activity of Nd dipoles at a
+%       data -> 3NdxNt. Vector containing the activity of Nd dipoles at a
 %       given time sample. The format or ordering of the data is.
 %               (x1,y1,z1,....xNd,yNd,zNd)'. where xn yn and zn is the activity
 %               of the n-th dipole in each coordinate.

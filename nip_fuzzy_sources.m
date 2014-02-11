@@ -27,6 +27,17 @@ if ~isfield(cortex, 'vc') && ~isfield(cortex,'tri')
     cortex.faces = [];
 end
 
+if ~isfield(cortex, 'tri') && ~isfield(cortex, 'faces')
+    if ~isfield(cortex, 'vc')
+        cortex.vc = cortex.vertices;
+    end
+    cortex.vertices = [];
+    cortex.tri = [];
+    cortex.faces = [];
+    grid = true;
+else
+    grid = false;
+end
 
 if isempty(varargin)
     varargin{1} = [];
@@ -42,22 +53,36 @@ if ~isfield(varargin{1},'calc')
     varargin{1}.calc = 'aff';
 end
 
-
-if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
-    distmat = graphrbf(cortex);
-else
-    filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'.mat');
-    if exist(filename)
-        load(filename);
+if (grid)
+    if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
+        distmat = squareform(pdist(cortex.vc,'euclidean'));
     else
-        distmat = graphrbf(cortex);
-        if varargin{1}.save
-            save(filename, 'distmat');
+        filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'grid.mat');
+        if exist(filename)
+            load(filename);
+        else
+            distmat = squareform(pdist(cortex.vc,'euclidean'));
+            if varargin{1}.save
+                save(filename, 'distmat');
+            end
         end
     end
-    
-end
+else
+    if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
+        distmat = graphrbf(cortex);
+    else
+        filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'.mat');
+        if exist(filename)
+            load(filename);
+        else
+            distmat = graphrbf(cortex);
+            if varargin{1}.save
+                save(filename, 'distmat');
+            end
+        end
 
+    end
+end
 
 switch varargin{1}.calc
     case 'aff'

@@ -18,8 +18,8 @@ nip_init();
 % Forward problem data.
 load(strcat('data/sa_montreal.mat'))
 
-cfg.L = nip_translf(sa.V_cortex_coarse);
-cfg.cortex = sa.cortex_coarse;
+cfg.L = nip_translf(sa.V_coarse);
+cfg.cortex.vc = sa.grid_coarse;
 cfg.fs = 120; % Sample frequency
 cfg.t = 0:1/cfg.fs:1; % Time vector
 
@@ -53,14 +53,15 @@ end
 
 rng(1);
 % Simulate 1 active dipoles
-[J, actidx] = nip_simulate_activity(model.cortex.vc,[-30 20 30], act, randn(2,3), model.t,struct('sample_all',0));
+dir_sim = randn(1,3);
+[J, actidx] = nip_simulate_activity(model.cortex.vc,[-30 20 30], act, dir_sim, model.t,struct('sample_all',1));
 % [J, ~] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  ones(size(act,1),3), model.t, struct('sample_all',0));
 
 
 % Simulate "smooth activity" (simulation is spatial low pass filtered
-fuzzy = nip_fuzzy_sources(model.cortex,1);
+fuzzy = nip_fuzzy_sources(model.cortex,1.5);
 index = (1:3:model.Nd);
-
+break
 for i = 0:2
     J(index+i,:) = fuzzy*J(index+i,:);
 end
@@ -73,7 +74,7 @@ clean_y = model.L*J;
 % Add noise at sensor level
 snr = 0;
 model.y = nip_addnoise_bio(model.L,J,model.t,snr);
-
+break
 % transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
 % model.y = transM*model.y;
 % model.L = transM*model.L;
@@ -85,7 +86,7 @@ switch depth
         L = model.L;
         Winv = [];
     case 'Lnorm'
-        gamma = 0.7;
+        gamma = 0.6;
         [L, extras] = nip_depthcomp(model.L,struct('type',depth,'gamma',gamma));
         Winv = extras.Winv;
     case 'sLORETA'
@@ -97,7 +98,7 @@ clear extras;
 %% SOLUTION %%
 
 
-sigma = 1; % Width of the gaussian bells or cortical blobs used as spatial dictionary
+sigma = 1.5; % Width of the gaussian bells or cortical blobs used as spatial dictionary
 
 % This function can be used to create spatial dictionaries using a forward
 % model taking into account only the cortex surface (model.cortex has the
@@ -112,8 +113,8 @@ B = nip_blobnorm(B,'norm',2);
 % Options for the inversion
 % The ratio between spatial_reg and temp_reg depends on the snr of the EEG
 % However, in general a ratio of 1:3 should work ok.
-spatial_reg = 90 ; % Sparsity in the spatial domain
-temp_reg = 2; % Sparsity in the time-frequency domain
+spatial_reg =90 ; % Sparsity in the spatial domain
+temp_reg = 1; % Sparsity in the time-frequency domain
 
 % Set regularization parameters to get an ideal goodness of fit
 resnorm = norm(model.y - model.L*J, 'fro')/norm(model.y, 'fro')
@@ -125,24 +126,24 @@ lipschitz = [];
 % modified to get the desired resnorm. If false, then the user-select reg.
 
 % temp_reg = 0;
-% [J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
-%     'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
-%     'lipschitz', lipschitz,'Winv',Winv);
-% er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
-
+[J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
+    'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
+    'lipschitz', lipschitz,'Winv',Winv);
+er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
+% 
 
 [J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',0.1,'resnorm', resnorm,'Winv',Winv);
-% er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
+er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
 % 
-% [J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
-%     'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
-%     'lipschitz', lipschitz,'Winv',Winv);
-% er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
+[J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
+    'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
+    'lipschitz', lipschitz,'Winv',Winv);
+er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
 
 
-J_est = J_estsflex;
+% J_est = J_estsflex;
 % J_est = J_esttfmxne;
-% J_est = J_eststout;
+J_est = J_eststout;
 
 % resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
 
@@ -150,26 +151,40 @@ J_est = J_estsflex;
 
 
 %% Visualization %%
+
+source_pars = struct('orientation', 'coronal', 'ncol', [3 4], 'dslice_shown', 2.5, 'mydipmarkersize', 1.5, 'mydiplinewidth', 2.5, 'trcut', 0.25);
+
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J),2)], [sa.grid_coarse(actidx, :) dir_sim]);
+zlab = get(h.cb, 'ylabel');
+set(zlab, 'String', 'k.A.', 'fontsize', 18) 
+set(h.cb, 'fontsize', 18)
+
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J_est),2)], [sa.grid_coarse(actidx, :) dir_sim]);
+zlab = get(h.cb, 'ylabel');
+set(zlab, 'String', 'k.A.', 'fontsize', 18) 
+set(h.cb, 'fontsize', 18)
 %%% Simulation
 %Temporal
-figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-plot(model.t,J')
-xlabel('Time')
-ylabel('Amplitude')
-
-% Spatial
-figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca)); 
-
-
-
-%%% Reconstruction %%%
-%Temporal
-figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-plot(model.t,J_est')
-xlabel('Time')
-ylabel('Amplitude')
-
-% Spatial
-figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
-nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca)); 
+% figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+% plot(model.t,J')
+% xlabel('Time')
+% ylabel('Amplitude')
+% 
+% % Spatial
+% figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+% nip_reconstruction3d(model.cortex, sqrt(sum(J.^2,2)), struct('axes',gca)); 
+% 
+% 
+% 
+% %%% Reconstruction %%%
+% %Temporal
+% figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
+% plot(model.t,J_est')
+% xlabel('Time')
+% ylabel('Amplitude')
+% 
+% % Spatial
+% figure('Units','normalized','position',[0.2 0.2 0.15 0.2]);
+% nip_reconstruction3d(model.cortex, sqrt(sum(J_est.^2,2)),  struct('axes',gca)); 

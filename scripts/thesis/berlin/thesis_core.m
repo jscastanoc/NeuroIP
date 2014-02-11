@@ -61,8 +61,8 @@ switch method
         reg_par = 100;
         [J_rec, extras] = nip_sflex(model.y, L, B,'optimres',true,'regpar', reg_par,'resnorm',resnorm,'Winv',Winv);
     case 'TF-MxNE'
-        spatial_reg = 160;
-        temp_reg =  10;
+        spatial_reg = 90;
+        temp_reg =  1;
         [J_rec, extras] = nip_tfmxne_python(model.y, L, 'optimres',true,'sreg',spatial_reg,'treg',temp_reg,'resnorm',resnorm,'Winv',Winv);
     case 'STOUT'
         % Spatial dictionary
@@ -71,8 +71,8 @@ switch method
         B = nip_blobnorm(B,'norm',2);
         
         % Options for the inversion
-        spatial_reg = 160;
-        temp_reg =  10;
+        spatial_reg = 90;
+        temp_reg =  1;
         [J_rec, extras] = nip_stout_python(model.y, L, B,'optimres',true,'sreg',spatial_reg,'treg',temp_reg,'resnorm',resnorm,'Winv',Winv);
     otherwise
         error('%s not available as method',methods{m})

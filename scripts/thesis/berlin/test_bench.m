@@ -38,7 +38,7 @@ snr = [];
 % cortex = model.cortex;
 % clear model;
 
-Nexp = [1:25];
+Nexp = [1:20];
 
 jobs_c = 1;
 % methods = {'LOR','TF-MxNE','STOUT','S-FLEX','KAL','IRA3','IRA5','LOR_PROJ'};
@@ -70,7 +70,6 @@ for l = 1:numel(depth)
                     load(file_name);
                     load_data;
                     model.fs = fs;
-                    model.y = nip_addnoise(y,8);
                     model.Nt = size(y,2);
                     model.t = 0:1/fs:model.Nt/fs;
                     
@@ -79,7 +78,7 @@ for l = 1:numel(depth)
                     
                     jobs(jobs_c) = mgsub({'J_rec', 'time', 'er', 'extra'},'thesis_core', ...
                         {Nexp,Nact,Ntrials,method,dir_base,dir_results,...
-                        dir_error,snr_bio,model, Jclean, actidx,depth{l},resnorm}, 'qsub_opts', '-l h_vmem=4G');
+                        dir_error,snr_bio,model, Jclean, actidx,depth{l},resnorm}, 'qsub_opts', '-l h_vmem=6G');
                     cur_jobs = [cur_jobs jobs(jobs_c)];
                     jobs_c = jobs_c + 1;
                     

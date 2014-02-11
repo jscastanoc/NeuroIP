@@ -14,8 +14,10 @@ clear model;
 
 
 [Nc, Nd] = size(L);
-if isfield(cortex, 'vc') && isfield(cortex,'tri')
+if isfield(cortex, 'vc') 
     cortex.vertices = cortex.vc;
+end
+if isfield(cortex,'tri')
     cortex.faces = cortex.tri;
 end
 
@@ -43,15 +45,17 @@ for kk = 1:n_exp
     Nact = size(source_act,1);
     [Jclean, actidx] = nip_simulate_activity(cortex.vertices, Nact, source_act, dir, t,options);
     
-%     fuzzy = nip_fuzzy_sources(cortex,1.5);
-%     index = (1:3:Nd);
-%     for i = 0:2
-%         J(index+i,:) = fuzzy*Jclean(index+i,:); % J simulado FINAL
-%     end
+    fuzzy = nip_fuzzy_sources(cortex,1.5);
+    fuzzy(find(fuzzy) < 0.05*max(fuzzy(:))) = 0;
+    index = (1:3:Nd);
+    for i = 0:2
+        J(index+i,:) = fuzzy*Jclean(index+i,:); % J simulado FINAL
+    end
 %     Jnorm = sqrt(sum(J.^2,2));
 %     idxaux = find(Jnorm<0.05*max(Jnorm));
 %     J(idxaux,:) = 0.0;
-    CleanBrain{kk}.Jclean = sparse(Jclean);
+%     CleanBrain{kk}.Jclean = sparse(Jclean);
+    CleanBrain{kk}.Jclean = sparse(J);
     CleanBrain{kk}.actidx = actidx;
 end
 
@@ -60,7 +64,7 @@ for k = 1:length(snr_bio)
         cur_jobs = [];
         copy_res = {};
         for i = Ntrials
-            [y, Jclean, actidx] = nip_simtrials(L, cortex.vc, CleanBrain{j}, t, Nspurious , i, snr_meas, snr_bio(k),{'sample_all',false});
+            [y, Jclean, actidx] = nip_simtrials(L, cortex.vc, CleanBrain{j}, t, Nspurious , i, snr_meas, snr_bio(k),{'sample_all',true});
             dir = strcat(dir_base,num2str(length(ps)));
             file_name = strcat(dir,'/Exp',num2str(j),'Ntrials',...
                 num2str(i),'BioNoise',num2str(snr_bio(k)),'.mat');

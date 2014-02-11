@@ -22,7 +22,7 @@ def_lipschitz = [];
 def_optimres = false;
 def_Winv = [];
 def_wsize = double(64.0);
-def_tstep = double(4.0);
+def_tstep = double(8.0);
 
 addParamValue(p,'tstep',def_tstep);
 addParamValue(p,'wsize',def_wsize);
