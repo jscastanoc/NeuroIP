@@ -27,14 +27,14 @@ p = inputParser;
 
 def_sreg = 80;
 def_treg= 1;
-def_maxiter = 10;
-def_tol = 2e-2;
+def_maxiter = 1000;
+def_tol = 1e-8;
 def_resnorm = 0.3;
 def_lipschitz = [];
 def_optimres = false;
 def_Winv = [];
-def_wsize = double(128.0);
-def_tstep = double(10.0);
+def_wsize = double(64.0);
+def_tstep = double(8.0);
 
 addParamValue(p,'tstep',def_tstep);
 addParamValue(p,'wsize',def_wsize);

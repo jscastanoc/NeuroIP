@@ -66,7 +66,9 @@ xx0f = zeros(3*Nt,nbasis);
 XX = {@xforth, @xback, Nc*Nt, nbasis*NDUM*Nt};
 
 opt.solver = 'qn';
-
+opt.maxiter = 1000;
+opt.tol = 1e-8;
+%opt.stopcond = 'fval';
 iter = 1;
 xx = xx0f;
 while true
@@ -96,7 +98,7 @@ if ~isempty(options.Winv)
     J_rec = permute(reshape(full(reshape(permute(J_est, [1 3 2]), siJ(1), [])*options.Winv), siJ(1), siJ(3), siJ(2)), [1 3 2]);
     J_rec = nip_translf(J_rec)';
 end
-extras =[];
+extras =status;
 
     function xfo = xforth(x)
         Q = size(x, 2);
