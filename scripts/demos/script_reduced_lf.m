@@ -16,16 +16,17 @@ nip_init();
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Forward problem data.
-load(strcat('data/sa_montreal.mat'))
-
-cfg.L = nip_translf(sa.V_coarse);
-cfg.cortex.vc = sa.grid_coarse;
-cfg.fs = 120; % Sample frequency
-cfg.t = 0:1/cfg.fs:1; % Time vector
-
-% Crea una estructura (model) con los datos cargados y declarados arriba
-model = nip_create_model(cfg);
-clear cfg L cortex_mesh eeg_std head elec
+% load(strcat('data/sa_montreal.mat'))
+% 
+% cfg.L = nip_translf(sa.V_coarse);
+% cfg.cortex.vc = sa.grid_coarse;
+% cfg.fs = 120; % Sample frequency
+% cfg.t = 0:1/cfg.fs:1; % Time vector
+% 
+% % Crea una estructura (model) con los datos cargados y declarados arriba
+% model = nip_create_model(cfg);
+% clear cfg L cortex_mesh eeg_std head elec
+load_data_grid;
 
 %% Generate time series for the active dipoles
 
@@ -52,16 +53,16 @@ for i = 1:Nact
 end
 
 rng(1);
-% Simulate 1 active dipoles
-dir_sim = randn(1,3);
-[J, actidx] = nip_simulate_activity(model.cortex.vc,[-30 20 30], act, dir_sim, model.t,struct('sample_all',1));
-% [J, ~] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  ones(size(act,1),3), model.t, struct('sample_all',0));
+% Simulate 2 active dipoles
+dir_sim = randn(2,3);
+% [J, actidx] = nip_simulate_activity(model.cortex.vc,[-30 20 30], act, dir_sim, model.t,struct('sample_all',1));
+[J, actidx] = nip_simulate_activity(model.cortex.vc, [30 -20 30;-30 20 30] , act,  dir_sim, model.t, struct('sample_all',1));
 
 
 % Simulate "smooth activity" (simulation is spatial low pass filtered
-fuzzy = nip_fuzzy_sources(model.cortex,1.5);
+fuzzy = nip_fuzzy_sources(model.cortex,0.015);
 index = (1:3:model.Nd);
-break
+
 for i = 0:2
     J(index+i,:) = fuzzy*J(index+i,:);
 end
@@ -72,9 +73,9 @@ end
 clean_y = model.L*J;
 
 % Add noise at sensor level
-snr = 0;
+snr = 5;
 model.y = nip_addnoise_bio(model.L,J,model.t,snr);
-break
+
 % transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
 % model.y = transM*model.y;
 % model.L = transM*model.L;
@@ -98,7 +99,7 @@ clear extras;
 %% SOLUTION %%
 
 
-sigma = 1.5; % Width of the gaussian bells or cortical blobs used as spatial dictionary
+sigma = 1.2; % Width of the gaussian bells or cortical blobs used as spatial dictionary
 
 % This function can be used to create spatial dictionaries using a forward
 % model taking into account only the cortex surface (model.cortex has the
@@ -126,24 +127,38 @@ lipschitz = [];
 % modified to get the desired resnorm. If false, then the user-select reg.
 
 % temp_reg = 0;
+
+% load('/mnt/data/Master_Results/Datasets/simulated/montreal_grid_orig/3/Exp11Ntrials100BioNoise-5.mat')
+% load('/mnt/data/Master_Results/Datasets/simulated/montreal_grid_orig/3/Exp6Ntrials100BioNoise-5.mat')
+% J = full(Jclean);
+% resnorm = gof;
+% model.y = y;
+
 [J_eststout, extras] = nip_stout_python(model.y, L, B,'optimres',true,...
     'sreg',spatial_reg,'treg',temp_reg,'resnorm', resnorm, 'tstep',a ,'wsize',m,...
     'lipschitz', lipschitz,'Winv',Winv);
 er{1}= nip_all_errors(model.y,model.L,J_eststout,J,model.cortex,actidx);
-% 
 
-[J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',0.1,'resnorm', resnorm,'Winv',Winv);
-er{2}= nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
+
+[J_estsflex, extras] = nip_sflex(model.y, L, B, 'optimres',true,'regpar',10,'resnorm', resnorm,'Winv',Winv);
+er{2} = nip_all_errors(model.y,model.L,J_estsflex,J,model.cortex,actidx);
+
+[J_estsflexFISTA, extrasF] = nip_sflex_python(model.y, L,B , 'optimres',true, 'resnorm',resnorm,...
+    'sreg',spatial_reg,'Winv',Winv);
+% save('J_estsflexFISTA.mat','J_estsflexFISTA');
+er{3}= nip_all_errors(model.y,model.L,J_estsflexFISTA,J,model.cortex,actidx);
+
+% break;
 % 
-[J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
-    'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
-    'lipschitz', lipschitz,'Winv',Winv);
-er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
+% [J_esttfmxne, extras] = nip_tfmxne_python(model.y, L, 'optimres',true, 'resnorm',resnorm,...
+%     'sreg',spatial_reg,'treg',temp_reg, 'tstep',a ,'wsize',m,...
+%     'lipschitz', lipschitz,'Winv',Winv);
+% er{3}= nip_all_errors(model.y,model.L,J_esttfmxne,J,model.cortex,actidx);
 
 
 % J_est = J_estsflex;
 % J_est = J_esttfmxne;
-J_est = J_eststout;
+% J_est = J_eststout;
 
 % resnorm = norm(model.y-model.L*J_est, 'fro')/norm(model.y, 'fro');
 
@@ -161,7 +176,19 @@ set(zlab, 'String', 'k.A.', 'fontsize', 18)
 set(h.cb, 'fontsize', 18)
 
 figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
-h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J_est),2)], [sa.grid_coarse(actidx, :) dir_sim]);
+h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J_estsflex),2)], [sa.grid_coarse(actidx, :) dir_sim]);
+zlab = get(h.cb, 'ylabel');
+set(zlab, 'String', 'k.A.', 'fontsize', 18) 
+set(h.cb, 'fontsize', 18)
+
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J_estsflexFISTA),2)], [sa.grid_coarse(actidx, :) dir_sim]);
+zlab = get(h.cb, 'ylabel');
+set(zlab, 'String', 'k.A.', 'fontsize', 18) 
+set(h.cb, 'fontsize', 18)
+
+figure('Units','normalized','position',[0.2 0.2 0.14 0.14]);
+h = showmri_transp(sa.mri, source_pars, [sa.grid_coarse 100*sum(nip_energy(J_eststout),2)], [sa.grid_coarse(actidx, :) dir_sim]);
 zlab = get(h.cb, 'ylabel');
 set(zlab, 'String', 'k.A.', 'fontsize', 18) 
 set(h.cb, 'fontsize', 18)
