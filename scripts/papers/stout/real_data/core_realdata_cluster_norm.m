@@ -23,20 +23,18 @@ warning off
 
 load clab_example;
 load clab_10_10;
-% clab = clab_10_10;
 clab = dmy.clab;
-% data_name = 'icbm152b_sym';
 data_name = 'montreal';
 
 sa = prepare_sourceanalysis(clab, data_name);
 
-% temp = sa.V_cortex10K;
+% Reduce lead field to the available sensors
 temp = sa.V_cortex_coarse;
-L = nip_translf(temp); % Leadfield matrix
+L = nip_translf(temp); 
 L = L(find(ismember(clab_example,sa.clab_electrodes)),:);
 clear temp
 
-% cfg.cortex = sa.cortex10K;
+
 cfg.cortex = sa.cortex_coarse;
 cfg.L = L;
 cfg.fs = dmy.fs; % Sample frequency (Hz)
@@ -61,6 +59,7 @@ switch depth
 end
 clear extras;
 
+% Reference
 transM = eye(model.Nc)-(1/model.Nc)*ones(model.Nc);
 
 model.y = transM*model.y;

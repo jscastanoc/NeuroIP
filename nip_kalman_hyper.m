@@ -28,7 +28,7 @@ clear A;
 clear auxL;
 
 % Compute measurement covariance matrices of data  with overlapped windows
-window = -floor(Nc/16):1:floor(Nc/16);
+window = -floor(Nc/8):1:floor(Nc/8);
 % window = -floor(50):1:floor(50);
 ycov = zeros(Nc^2,Nt);
 for i = 1:Nt
@@ -47,9 +47,9 @@ function h = kalman_priors(ycov,L)
 [Nk] = size(L,2);
 h = zeros(Nk,Nt);
 P = 1*speye(Nk);
-A = speye(Nk);
+A = 0.9*speye(Nk);
 Q = 1*speye(Nk);
-S = 1e-2*speye(Nc);
+S = 1e4*speye(Nc);
 Sinv = inv(S);
 eyeNk = speye(Nk);
 
@@ -66,7 +66,7 @@ for i = 2:Nt
     Pap = A*P*A'+Q;
     y_res = ycov(:,i) - L*hap;
     %    S_res = L*Pap*L' + S;
-    S_resInv = Sinv - (Sinv*L/(inv(Pap)+L'*Sinv*L))*L'*Sinv;
+    S_resInv = Sinv - (Sinv*L/(inv(Pap+1e-5)+L'*Sinv*L))*L'*Sinv;
     K = Pap*L'*S_resInv;
     h(:,i) = hap + K*y_res;
     if sum(find(isnan(h)))

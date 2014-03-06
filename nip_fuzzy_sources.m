@@ -5,7 +5,8 @@ function aff = nip_fuzzy_sources(cortex, sigma, varargin)
 % in each vertex
 % Input:
 %       cortex -> Struct. Structure containing the vertices and faces of
-%       the graph
+%       the graph (or only vertices ('vc') if the brain model is a cubic grid of
+%       dipoles
 %       sigma -> Scalar. Variance of the gaussian placed at each vertex
 %		options
 % Output:
