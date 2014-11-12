@@ -127,6 +127,7 @@ if ~isempty(options.alpha)
     set(h,'FaceAlpha',options.alpha);
 end
 colorbar(options.colorbar)
+freezeColors;
 colormap(options.colormap)
 view(options.view);
 

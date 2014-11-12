@@ -1,6 +1,5 @@
 % Script BASIC
 clear; close all; clc;
-nip_init();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preproceso / simulacion %
@@ -26,7 +25,7 @@ act = sin(2*pi*10*model.t); % Actividad a simular (series de tiempo)
 [J, ~] = nip_simulate_activity(model.cortex.vc,[30 -20 30], act, randn(1,3), model.t);
 
 % Hay dispersion de la actividad, entre mas grande el numero, mas dispersa es la actividad    
-fuzzy = nip_fuzzy_sources(model.cortex,0.1);
+fuzzy = nip_fuzzy_sources(model.cortex,0.1,'dataset','montreal','save',1);
 index = (1:3:model.Nd);
 
 for i = 0:2
@@ -35,16 +34,6 @@ end
 
 % Obtener el eeg correspondiente a la simulacion
 clean_y = model.L*J;
-
-% Normalizacion usando la matrix de sLORETA (optional)
-Lsloreta = nip_translf(model.L);
-Winv = full(sloreta_invweights(Lsloreta));
-Winv = cat(3,Winv(1:end/3,1:end/3),Winv(end/3 +1:2*end/3,end/3 +1:2*end/3),Winv(2*end/3 +1 :end,2*end/3 +1:end));
-for i = 1:3
-    Lsloreta(:,:,i) = Lsloreta(:,:,i)*Winv(:,:,i);
-end
-model.L = nip_translf(Lsloreta);
-
 
 % Anadir ruido
 snr = 10;
@@ -58,17 +47,7 @@ model.y = nip_addnoise(clean_y, snr);
 % Estimar actividad (en este caso LORETA por que se usa el laplaciano
 % espacial para hallar la matriz de covarianza
 Q = eye(model.Nd); %Matriz de covarianza apriori
-[J_est, extras] = nip_loreta(model.y, model.L, Q);
-% J_est = nip_sloreta(model.y,model.L);
-% Q = diag(sqrt(sum(J_est,2)));
-% [J_est, extras] = nip_loreta(model.y, model.L, Q);
-
-% Aplicar desnormalizacion
-J_est = nip_trans_solution(J_est);
-for i = 1:3
-    J_est(:,:,i) = Winv(:,:,i)*J_est(:,:,i);
-end
-J_est = nip_trans_solution(J_est);
+[J_est, extras] = nip_loreta(model.y, model.L, 'cov',Q);
 
 %%%%%%%%%%%%%%%%%
 % Visualizacion %

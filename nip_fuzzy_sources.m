@@ -70,13 +70,17 @@ if (grid)
     end
 else
     if ( isempty(varargin{1}.dataset) || ~varargin{1}.save )
-        distmat = graphrbf(cortex);
+        distmat = compute_mesh_weight(cortex.vc, cortex.tri,'distance', struct('normalize',1));
+        distmat = all_shortest_paths(distmat);
+%         distmat = graphrbf(cortex);
     else
         filename = strcat('VC',num2str(size(cortex.vc,1)),varargin{1}.dataset,'.mat');
         if exist(filename)
             load(filename);
         else
-            distmat = graphrbf(cortex);
+            distmat = compute_mesh_weight(cortex.vc, cortex.tri,'distance', struct('normalize',1));
+            distmat = all_shortest_paths(distmat);
+%             distmat = graphrbf(cortex);
             if varargin{1}.save
                 save(filename, 'distmat');
             end

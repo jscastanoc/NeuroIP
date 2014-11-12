@@ -11,7 +11,7 @@ options = p.Results;
 
 [Nc,Nd] = size(L);
 Nt = size(y,2);
-[y_proj, y_rec, Ur, Er] = nip_tempcomp(y, t, [], 0.9);
+[y_proj, y_rec, Ur, Er] = nip_tempcomp(y, t, [], 0.85);
 Np = size(Ur,2);
 
 
@@ -21,7 +21,7 @@ finalD =[];
 for i = 1:Np
     %     D(:,i) = nip_lcmv(y_proj(:,i),L);B = nip_blobnorm(B);
         % Options for the inversion
-    reg_par = 20;
+    reg_par = 150;
     [D(:,i), ~] = nip_sflex(y_proj(:,i), L, nip_blobnorm(basis), 'regpar', reg_par,'optimres',true,'resnorm',.99,'Winv',options.Winv);
     
     if isempty(find(D(:,i)))

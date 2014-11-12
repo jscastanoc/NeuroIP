@@ -26,6 +26,14 @@ function [J_rec extras] = nip_tfmxne_port(y,L,varargin)
 % jscastanoc@gmail.com
 % 14 Aug 2013
 
+global log_file
+
+fname = '/home/jscastanoc/Desktop/dev_logger_matlab.log';
+log_file = fopen(fname,'w');
+fprintf(log_file,'Starting fista \n')
+
+
+
 Ndor = size(L,2);
 idx = 1:1:Ndor;
 L_or = L;
@@ -40,15 +48,15 @@ def_a = 8;
 def_m = 112;
 def_sreg = 80;
 def_treg= 1;
-def_maxiter = 100;
-def_tol = 1e-2;
+def_maxiter = 500;
+def_tol = 1e-8;
 def_resnorm = 0.3;
 def_lipschitz = [];
 def_optimres = false;
 def_Winv = [];
 
-addParamValue(p,'a',def_a);
-addParamValue(p,'m',def_m);
+addParamValue(p,'tstep',def_a);
+addParamValue(p,'wsize',def_m);
 addParamValue(p,'sreg',def_sreg);
 addParamValue(p,'treg',def_treg);
 addParamValue(p,'maxiter',def_maxiter);
@@ -65,15 +73,16 @@ options = p.Results;
 tol = options.tol;
 sreg = options.sreg;
 treg = options.treg;
-a = options.a;
-M = options.m;
+a = options.tstep;
+M = options.wsize;
 lipschitz_k = options.lipschitz;
+maxiter = options.maxiter;
 
 
 
 
 % Initialization of the TF-MxNE algorithm
-c = dgtreal(y','gauss',a,M);
+c = dgtreal(y','sine',a,M);
 T = size(c,2);
 K = size(c,1);
 Z = sparse(0,K*T);
@@ -98,8 +107,10 @@ Y_time_as = [];
 Y_as = [];
 
 if isempty(options.lipschitz)
-    lipschitz_k = 1.1*lipschitz_contant(y, L, 5e-2, a, M);
+    lipschitz_k = 1.1*lipschitz_contant(y, L, 1e-3, a, M);
 end
+fprintf(log_file,'Lipschitz constant : %s \n', lipschitz_k)
+
 mu_lc = sreg/lipschitz_k;
 lambda_lc = treg/lipschitz_k;
 stop =false;
@@ -123,7 +134,7 @@ while true
      active_set = logical(sparse(1,Nd));
     Y_time_as = [];
     Y_as = [];
-    for i = 1:200
+    for i = 1:maxiter
         tic;        
         
         Z_0 = Z;   
@@ -187,9 +198,10 @@ while true
             R = y - L(:, find(Y_as))*Y_time_as(find(Y_as),1:Nt);
         end
         
-        stop = error < tol || error_0 < error ||( sum(full(active_set))==0 && i > 1);
+%         stop = error < tol || error_0 < error ||( sum(full(active_set))==0 && i > 1);
+        stop = error < tol || ( sum(full(active_set))==0 && i > 1);
         if stop
-%             disp('Converged')
+            disp('Converged')
             break
         end
         eta = toc;
@@ -310,15 +322,17 @@ end
 end
 
 function k = lipschitz_contant(y, L, tol, a, M)
+
+global log_file
 % L = L(:,randsample(size(L,2),900));
 Nt = size(y,2);
 Nd = size(L,2);
 iv = ones(Nd,Nt);
-v = dgtreal(iv', 'gauss', a,M);
+v = dgtreal(iv', 'sine', a,M);
 T = size(v,2);
 K = size(v,1);
 
-l = 5e5;
+l = 1e100;
 l_old = 0;
 fprintf('Lipschitz constant estimation: \n')
 rev_line = '';
@@ -327,13 +341,15 @@ for i = 1 : 100
     tic
     msg = sprintf('Iteration = %d, Diff: %d, Lipschitz Constant: %d\nTime per iteration %d ',i,abs(l-l_old)/l_old,l,toc);
     fprintf([rev_line, msg]);
+    
+    fprintf(log_file,'Lipschitz estimation: iteration = %d \n', i)
     rev_line = repmat(sprintf('\b'),1,length(msg));
     l_old = l;
-    aux = idgtreal(v,'gauss',a,M)';
+    aux = idgtreal(v,'sine',a,M)';
     iv = real(aux);
     Lv = L*iv;
     LtLv = L'*Lv;
-    w = dgtreal(LtLv', 'gauss', a,M);
+    w = dgtreal(LtLv', 'sine', a,M);
     l = max(max(max(abs(w))));
     v = w/l;
     if abs(l-l_old)/l_old < tol

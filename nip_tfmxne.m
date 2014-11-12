@@ -21,6 +21,8 @@ function [J_rec extras] = nip_tfmxne(y,L,options)
 % jscastanoc@gmail.com
 % 14 Aug 2013
 
+
+
 [Nc Nd] = size(L);
 Nt = size(y,2);
 

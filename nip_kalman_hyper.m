@@ -28,7 +28,7 @@ clear A;
 clear auxL;
 
 % Compute measurement covariance matrices of data  with overlapped windows
-window = -floor(Nc/8):1:floor(Nc/8);
+window = -floor(Nc/24):1:floor(Nc/24);
 % window = -floor(50):1:floor(50);
 ycov = zeros(Nc^2,Nt);
 for i = 1:Nt
